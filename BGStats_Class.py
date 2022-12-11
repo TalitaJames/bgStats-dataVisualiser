@@ -4,6 +4,7 @@ import api_bgg
 import time
 import datetime
 from collections import Counter
+from operator import itemgetter
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -105,45 +106,43 @@ class BGStatsData:
     def playerWinCount(self):
         playerList=[]
         
-        for k in range(len(self.players)):
+        for k in range(len(self.players)): #for each player
             player={}
             
             playerRefId= self.players[k]['id']
             player.update({'name':self.players[k]['name']})
             player.update({'plays':0})
             player.update({'wins':0})
+            player.update({'ID':playerRefId})
+            player.update({'expected wins':0})
+            expectedWinList=[]
+            playerCount=0
             
             for i in range(len(self.plays_timeLim)): #for each game
-                # pp.pprint(self.plays_timeLim[i])
-                
+               
                 for j in range(len(self.plays_timeLim[i]['playerScores'])): #for the players in that game
                     # print("\t\tplayer %i of %i" %(j,len(self.plays_timeLim[i]['playerScores']))) #Debug
                     
                     playerInfo=self.plays_timeLim[i]['playerScores'][j]
                     
-                    
-                    if playerInfo['playerRefId'] == playerRefId:
+                    if playerInfo['playerRefId'] == playerRefId: #if person K is in game i
                         player.update({'plays':player['plays']+1})
+                        
+                        playerCount=len(self.plays_timeLim[i]['playerScores'])
+                        expectedWinList.append(1/playerCount)
                     
                         if playerInfo['winner'] == True:
                             player.update({'wins':player['wins']+1})
+                        
+            print(f"\nFor player: {player['name']} \tsum: {round(sum(expectedWinList),4)} len: {len(expectedWinList)} and avg: {round(sum(expectedWinList) / len(expectedWinList),2)}")
+            player.update({'expected wins':round(sum(expectedWinList) / len(expectedWinList),2)})               
                 
-                # print("\t"+str(player))
+            # print("\t"+str(player))
             playerList.append(player)
                     
-        pp.pprint(playerList)
-                    
-                    
+        return playerList
 
-        
-        
-        # pp.pprint(playerRefId)
-        # for i in range(len(self.players)):
-            
-            
-            # playerWinCount=self.statIDtoBggID(playerRefId)
-            # playerWinCount.append(bggGameID)
-        pass
+    
 
 def runData():
     data=BGStatsData('BGStatsExport.json')
@@ -151,11 +150,21 @@ def runData():
     
 
 if __name__=='__main__':
-    print("hello world")
+    # print("hello world")
     
     data=BGStatsData('BGStatsExport.json')
 
-    bggID_List=data.playerWinCount()
+    playerWinCount=data.playerWinCount()
+    # pp.pprint(playerWinCount)
+    
+    
+    # player_sorted = sorted(playerWinCount, key=lambda d: d['wins'], reverse=True) 
+    # sorted(playerWinCount, key=itemgetter('name'))
+    # player_sorted = sorted(playerWinCount, key=itemgetter('name')) 
+    # pp.pprint(player_sorted)
+
+    
+    
     
  
             
