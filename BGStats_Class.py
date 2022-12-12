@@ -1,18 +1,23 @@
 import pprint
-import json
-import api_bgg
 import time
+import argparse
+import os
+
+import requests
+import xmltodict, json
+
 import datetime
-from collections import Counter
-from operator import itemgetter
+import collections
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+import api_bgg
 
 pp = pprint.PrettyPrinter(depth=3) # Formats the json print mesages to be easy read
 raw_data = json.load(open("BGStatsExport/2022-12-12.json",encoding="utf8"))
 
+#TODO GET RID OF THIS
 class BGStatsData:
     def __init__(self,yyyy=1970, mm=1, dd=1):
         
@@ -85,8 +90,8 @@ class BGStatsData:
         # print(gameMechanics_flat)
         # print(gameCategories_flat)
         
-        gameMechanics_count=Counter(gameMechanics_flat)
-        gameCategories_count=Counter(gameCategories_flat)
+        gameMechanics_count=collections.Counter(gameMechanics_flat)
+        gameCategories_count=collections.Counter(gameCategories_flat)
         
         print(gameMechanics_count)
         print(gameCategories_count)
@@ -135,6 +140,31 @@ class BGStatsData:
                     
         return playerList
 
+class Game:
+    def __init__(self, bgg_id, name=None):
+        self.bgg_id = bgg_id
+        
+        self.plays = collections.defaultdict(int)
+       
+        if bgg_id == 0: #game isn't on BGG, has been manually added
+            self.image = 'pictureAssets/none_game.png'
+            self.mechanics = []
+            self.name = name
+            return
+
+        r = requests.get(
+            f'https://boardgamegeek.com/xmlapi2/thing?id={bgg_id}')
+        
+        game_dict = xmltodict.parse(r.text)['items']['item']
+        
+        self.image = game_dict['image']
+        self.mechanics = [link['@value'] for link in game_dict['link']
+                          if link['@type'] == 'boardgamemechanic']
+
+        #most games have many names, some have one name
+        try: self.name = game_dict['name'][0]['@value']
+        except KeyError: self.name = game_dict['name']['@value']
+
 class player:
     def __init__(self, id, name, plays, wins, tags):
         self.id = id
@@ -146,10 +176,10 @@ class player:
     def __str__(self):
         return f"{self.name} (ID {self.id}) has P: {self.plays} W: {self.wins} and Tags: {self.tags}"
 
-def loadPlayers():
+def loadPlayers(data):
     players = {}
     
-    for human in raw_data['players']:
+    for human in data['players']:
         id=human['id']
         name=human['name']
         winCount=0
@@ -157,7 +187,7 @@ def loadPlayers():
         tags=[]
         
         # go thru the games and tally the plays/wins         
-        for gamePlay in raw_data['plays']: #for each game
+        for gamePlay in data['plays']: #for each game
             
             for person in gamePlay['playerScores']: #for the players in that game
                 # print(f"\tplayerID {person['playerRefId']} of {len(gamePlay['playerScores'])} ppl") #Debug
@@ -175,8 +205,8 @@ def loadPlayers():
                 # print(tag)
                 tadID=tag['id']
                 
-                print(raw_data['tags'])
-                for tagRaw in raw_data['tags']:
+                print(data['tags'])
+                for tagRaw in data['tags']:
                     
                     if tadID==tagRaw['id']:
                         tags.append(tagRaw['name'])
@@ -187,6 +217,29 @@ def loadPlayers():
         # print(playerObj.__str__())
         players.update({'name': name})
         players.update({'obj': playerObj})
+
+def loadGames(data):
+    pass
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-n', '--new', action='store_true')
+    parser.add_argument('-y', '--year', type=int)
+    parser.add_argument('-in', '--input', type=str)
+    args = parser.parse_args()
+    
+    if args.new and os.path.exists('dataExports/'):
+        os.removedirs('dataExports/')
+    if not args.year:
+        args.year = None
+    if not args.input:
+        args.input = os.path.join(os.path.dirname(
+            __file__), 'BGStatsExport/BGStatsExport.json')
+
+    with open(args.path, 'r', encoding='UTF-8') as f:
+        data = json.load(f)
+
+
 
 if __name__=='__main__':    
     loadPlayers()
