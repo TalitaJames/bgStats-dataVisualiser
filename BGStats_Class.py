@@ -32,8 +32,7 @@ class BGStatsData:
         self.players = raw_data['players']
         self.plays = raw_data['plays']
         self.timeLimitPlays(yyyy,mm,dd) # Sets the self.plays_timeLim list
-        self.tags = raw_data['tags']
-        self.userInfo = raw_data['userInfo'] 
+       
 
     # time limits the plays to a range
     def timeLimitPlays(self, yyyy,mm,dd):
@@ -109,39 +108,8 @@ class BGStatsData:
         plt.show()
             
     
-    def playerWinCount(self):       
-        for k in range(len(self.players)): #for each player
-            player={}
-            
-            playerRefId= self.players[k]['id']
-            player.update({'name':self.players[k]['name']})
-            player.update({'plays':0})
-            player.update({'wins':0})
-            player.update({'ID':playerRefId})
-            player.update({'expected wins':0})
-            
-            playerList=[]
-            
-            for i in range(len(self.plays_timeLim)): #for each game
-               
-                for j in range(len(self.plays_timeLim[i]['playerScores'])): #for the players in that game
-                    # print(f"\t\tplayer {j} of {len(self.plays_timeLim[i]['playerScores'])}") #Debug
-                    
-                    playerInfo=self.plays_timeLim[i]['playerScores'][j]
-                    
-                    if playerInfo['playerRefId'] == playerRefId: #if person K is in game i
-                        player.update({'plays':player['plays']+1})
-                        
-                        playerCount=len(self.plays_timeLim[i]['playerScores'])
-                    
-                        if playerInfo['winner'] == True:
-                            player.update({'wins':player['wins']+1})
-                        
-      
-            # print("\t"+str(player))
-            playerList.append(player)
-                    
-        return playerList
+    
+
 
 class game:
     def __init__(self, bgg_id, name=None):
@@ -180,13 +148,18 @@ class Player:
         return f"{self.name} (ID {self.id}) has P: {self.plays} W: {self.wins} and Tags: {self.tags}"
 
 def loadPlayers(data):
+    if os.path.exists('dataExports/players.pickle'):
+        with open('dataExports/players.pickle', 'rb') as f:
+            if verbose: print("loaded data from pickle\n")
+            print("Loading Players Done!\n")
+            return pickle.load(f)
+    
     players = {}
     
     #go thru each human and create them as a person obj
     for count, human in enumerate(data['players']):
         human_id=human['id']
         tags=[]
-
                 
         #TODO update code such that it works with tags
         try:
@@ -206,52 +179,80 @@ def loadPlayers(data):
         
         players[human_id] = Player(human_id, human['name'], tags)
         if verbose: print(f"Loaded {count+1}/{len(data['players'])} {human['name']} \t tags {tags}") 
-        
-        
-
-    for gamePlay in data['plays']: #for each game
-        for player in gamePlay['playerScores']: #for the players in that game
-        
-            # print(f"\tplayerID {player['playerRefId']} of {len(gamePlay['playerScores'])} ppl") #Debug
             
+    # for each game update each players plays and wins 
+    for gamePlay in data['plays']:
+        for player in gamePlay['playerScores']:                     
             players[player['playerRefId']].plays += 1 
             if player['winner'] == True: players[player['playerRefId']].wins +=1
     
     #save all the data for later use
     with open('dataExports/players.pickle', 'wb') as f:
+        if verbose: print("saved data")
         pickle.dump(players, f)
         
     print("Loading Players Done!\n")
+    return players
 
 def loadGames(data):
-    pass
+    games={}
+    print("Loading Games Done!")
+    return games
+
+def timeRange(data,timeRangeStart):
+    timeLimData=[]
+        
+    
+    for play in (data['plays']):
+        gameTime=datetime.datetime.fromisoformat(play['playDate'])
+        
+        
+        if (gameTime>=timeRangeStart):
+            timeLimData.append(play)
+        
+        if verbose: print(f"game played at {gameTime.strftime('%c')} was {'ADDED' if gameTime>=timeRangeStart else 'REMOVED'}")
+    
+    if verbose: print(f"reduced to {len(timeLimData)} from {len(data['plays'])} plays\n")
+        
+    return timeLimData
 
 def parseData():
     global verbose
     
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--new', action='store_true')
-    parser.add_argument('-in', '--input', type=str)
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-in', '--input', type=str)
+    parser.add_argument('-d', '--date', type=str)
     args = parser.parse_args()
     
     if args.new and os.path.exists('dataExports/'):
         os.removedirs('dataExports/')
     if not args.input:
-        args.input = os.path.join(os.path.dirname(
-            __file__), 'BGStatsExport/2022-12-12.json')
+        args.input = os.path.join(os.path.dirname(__file__), 'BGStatsExport/BGStatsExport-2022_12_12.json')
     verbose=args.verbose
-    if verbose:
-        print("\n verbose print statments on! \n")
+    if verbose: print("\n verbose print statments on! \n")
+    if not args.date:
+        date=datetime.datetime(1970, 1, 1) 
+    else:
+        dateList=args.date.split("/")
+        if verbose: print(f"{dateList} from {args.date}")
+        dd=int(dateList[0])
+        mm=int(dateList[1])
+        yy=int(dateList[2])
+        date=datetime.datetime(yy, mm, dd) 
+        
+        
+        if verbose: print(f"starting from {dd}/{mm}/{yy} \t{date.date}")
+        
     
     with open(args.input, 'r', encoding='UTF-8') as f:
         raw_data = json.load(f)
 
-    # data=timeRange(raw_data) #TODO: create a time limiting function
-    data=raw_data
+    data=timeRange(raw_data, date)
     
     loadPlayers(data)
-
+    loadGames(data) #TODO have this do things
     
     return data
 
