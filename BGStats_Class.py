@@ -2,6 +2,7 @@ import pprint
 import time
 import argparse
 import os
+import pickle
 
 import requests
 import xmltodict, json
@@ -16,6 +17,8 @@ import api_bgg
 
 pp = pprint.PrettyPrinter(depth=3) # Formats the json print mesages to be easy read
 raw_data = json.load(open("BGStatsExport/2022-12-12.json",encoding="utf8"))
+verbose=False #How much information to print to the user
+
 
 #TODO GET RID OF THIS
 class BGStatsData:
@@ -140,7 +143,7 @@ class BGStatsData:
                     
         return playerList
 
-class Game:
+class game:
     def __init__(self, bgg_id, name=None):
         self.bgg_id = bgg_id
         
@@ -165,13 +168,13 @@ class Game:
         try: self.name = game_dict['name'][0]['@value']
         except KeyError: self.name = game_dict['name']['@value']
 
-class player:
-    def __init__(self, id, name, plays, wins, tags):
+class Player:
+    def __init__(self, id, name, tags):
         self.id = id
         self.name = name
-        self.plays = plays
-        self.wins = wins
-        self.tags=[]
+        self.plays = 0
+        self.wins = 0
+        self.tags=tags
         
     def __str__(self):
         return f"{self.name} (ID {self.id}) has P: {self.plays} W: {self.wins} and Tags: {self.tags}"
@@ -179,70 +182,83 @@ class player:
 def loadPlayers(data):
     players = {}
     
-    for human in data['players']:
-        id=human['id']
-        name=human['name']
-        winCount=0
-        playCount=0
+    #go thru each human and create them as a person obj
+    for count, human in enumerate(data['players']):
+        human_id=human['id']
         tags=[]
-        
-        # go thru the games and tally the plays/wins         
-        for gamePlay in data['plays']: #for each game
-            
-            for person in gamePlay['playerScores']: #for the players in that game
-                # print(f"\tplayerID {person['playerRefId']} of {len(gamePlay['playerScores'])} ppl") #Debug
-                
-                if person['playerRefId'] == id: 
-                    playCount+=1
 
-                    if person['winner'] == True: winCount+=1
-       
-        # try:
-            # print(f"Tags for {name} are: {human['tags']}"
-        # ERROR HERE
-        if human['tags'] != KeyError:
-            for tag in human['tags']:
-                # print(tag)
-                tadID=tag['id']
                 
-                print(data['tags'])
-                for tagRaw in data['tags']:
-                    
-                    if tadID==tagRaw['id']:
-                        tags.append(tagRaw['name'])
-        # except:
-            # print(f"ERROR! No tags for {name}")
-            # pass 
-        playerObj=player(id,name,playCount, winCount, tags)
-        # print(playerObj.__str__())
-        players.update({'name': name})
-        players.update({'obj': playerObj})
+        #TODO update code such that it works with tags
+        try:
+            tagRawData=human['tags']
+        except KeyError:
+            if verbose:  print(f"ERROR! No tags for {human['name']}")
+            tagRawData=[]
+        
+        for tag in tagRawData:
+            tadID=tag['tagRefId']
+            
+            for tagMain in data['tags']:
+                
+                if tadID==tagMain['id']:
+                    tags.append(tagMain['name'])
+        
+        
+        players[human_id] = Player(human_id, human['name'], tags)
+        if verbose: print(f"Loaded {count+1}/{len(data['players'])} {human['name']} \t tags {tags}") 
+        
+        
+
+    for gamePlay in data['plays']: #for each game
+        for player in gamePlay['playerScores']: #for the players in that game
+        
+            # print(f"\tplayerID {player['playerRefId']} of {len(gamePlay['playerScores'])} ppl") #Debug
+            
+            players[player['playerRefId']].plays += 1 
+            if player['winner'] == True: players[player['playerRefId']].wins +=1
+    
+    #save all the data for later use
+    with open('dataExports/players.pickle', 'wb') as f:
+        pickle.dump(players, f)
+        
+    print("Loading Players Done!\n")
 
 def loadGames(data):
     pass
 
-def main():
+def parseData():
+    global verbose
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--new', action='store_true')
-    parser.add_argument('-y', '--year', type=int)
     parser.add_argument('-in', '--input', type=str)
+    parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
     
     if args.new and os.path.exists('dataExports/'):
         os.removedirs('dataExports/')
-    if not args.year:
-        args.year = None
     if not args.input:
         args.input = os.path.join(os.path.dirname(
-            __file__), 'BGStatsExport/BGStatsExport.json')
+            __file__), 'BGStatsExport/2022-12-12.json')
+    verbose=args.verbose
+    if verbose:
+        print("\n verbose print statments on! \n")
+    
+    with open(args.input, 'r', encoding='UTF-8') as f:
+        raw_data = json.load(f)
 
-    with open(args.path, 'r', encoding='UTF-8') as f:
-        data = json.load(f)
+    # data=timeRange(raw_data) #TODO: create a time limiting function
+    data=raw_data
+    
+    loadPlayers(data)
 
+    
+    return data
 
 
 if __name__=='__main__':    
-    loadPlayers()
+    print("------- Start")
+    data=parseData()
     # pp.pprint(raw_data['tags'])
     print("------- Done")
     
