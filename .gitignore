@@ -1,2 +1,4 @@
 *.json
-createdPictures/
+pictureExports/
+BGStatsExport/
+__pycache__/

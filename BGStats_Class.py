@@ -11,12 +11,10 @@ import numpy as np
 
 
 pp = pprint.PrettyPrinter(depth=3) # Formats the json print mesages to be easy read
-
+raw_data = json.load(open("BGStatsExport/2022-12-12.json",encoding="utf8"))
 
 class BGStatsData:
-    def __init__(self, filename,yyyy=1970, mm=1, dd=1):
-        #loads the json file
-        raw_data = json.load(open(filename,encoding="utf8"))
+    def __init__(self,yyyy=1970, mm=1, dd=1):
         
         #seperates the data into main categories
         self.challenges = raw_data['challenges']
@@ -103,9 +101,7 @@ class BGStatsData:
         plt.show()
             
     
-    def playerWinCount(self):
-        playerList=[]
-        
+    def playerWinCount(self):       
         for k in range(len(self.players)): #for each player
             player={}
             
@@ -115,13 +111,13 @@ class BGStatsData:
             player.update({'wins':0})
             player.update({'ID':playerRefId})
             player.update({'expected wins':0})
-            expectedWinList=[]
-            playerCount=0
+            
+            playerList=[]
             
             for i in range(len(self.plays_timeLim)): #for each game
                
                 for j in range(len(self.plays_timeLim[i]['playerScores'])): #for the players in that game
-                    # print("\t\tplayer %i of %i" %(j,len(self.plays_timeLim[i]['playerScores']))) #Debug
+                    # print(f"\t\tplayer {j} of {len(self.plays_timeLim[i]['playerScores'])}") #Debug
                     
                     playerInfo=self.plays_timeLim[i]['playerScores'][j]
                     
@@ -129,40 +125,73 @@ class BGStatsData:
                         player.update({'plays':player['plays']+1})
                         
                         playerCount=len(self.plays_timeLim[i]['playerScores'])
-                        expectedWinList.append(1/playerCount)
                     
                         if playerInfo['winner'] == True:
                             player.update({'wins':player['wins']+1})
                         
-            print(f"\nFor player: {player['name']} \tsum: {round(sum(expectedWinList),4)} len: {len(expectedWinList)} and avg: {round(sum(expectedWinList) / len(expectedWinList),2)}")
-            player.update({'expected wins':round(sum(expectedWinList) / len(expectedWinList),2)})               
-                
+      
             # print("\t"+str(player))
             playerList.append(player)
                     
         return playerList
 
-    
+class player:
+    def __init__(self, id, name, plays, wins, tags):
+        self.id = id
+        self.name = name
+        self.plays = plays
+        self.wins = wins
+        self.tags=[]
+        
+    def __str__(self):
+        return f"{self.name} (ID {self.id}) has P: {self.plays} W: {self.wins} and Tags: {self.tags}"
 
-def runData():
-    data=BGStatsData('BGStatsExport.json')
-
+def loadPlayers():
+    players = {}
     
+    for human in raw_data['players']:
+        id=human['id']
+        name=human['name']
+        winCount=0
+        playCount=0
+        tags=[]
+        
+        # go thru the games and tally the plays/wins         
+        for gamePlay in raw_data['plays']: #for each game
+            
+            for person in gamePlay['playerScores']: #for the players in that game
+                # print(f"\tplayerID {person['playerRefId']} of {len(gamePlay['playerScores'])} ppl") #Debug
+                
+                if person['playerRefId'] == id: 
+                    playCount+=1
 
-if __name__=='__main__':
-    # print("hello world")
-    
-    data=BGStatsData('BGStatsExport.json')
+                    if person['winner'] == True: winCount+=1
+       
+        # try:
+            # print(f"Tags for {name} are: {human['tags']}"
+        # ERROR HERE
+        if human['tags'] != KeyError:
+            for tag in human['tags']:
+                # print(tag)
+                tadID=tag['id']
+                
+                print(raw_data['tags'])
+                for tagRaw in raw_data['tags']:
+                    
+                    if tadID==tagRaw['id']:
+                        tags.append(tagRaw['name'])
+        # except:
+            # print(f"ERROR! No tags for {name}")
+            # pass 
+        playerObj=player(id,name,playCount, winCount, tags)
+        # print(playerObj.__str__())
+        players.update({'name': name})
+        players.update({'obj': playerObj})
 
-    playerWinCount=data.playerWinCount()
-    # pp.pprint(playerWinCount)
-    
-    
-    # player_sorted = sorted(playerWinCount, key=lambda d: d['wins'], reverse=True) 
-    # sorted(playerWinCount, key=itemgetter('name'))
-    # player_sorted = sorted(playerWinCount, key=itemgetter('name')) 
-    # pp.pprint(player_sorted)
-
+if __name__=='__main__':    
+    loadPlayers()
+    # pp.pprint(raw_data['tags'])
+    print("------- Done")
     
     
     
