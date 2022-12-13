@@ -15,103 +15,11 @@ import numpy as np
 
 import api_bgg
 
-pp = pprint.PrettyPrinter(depth=3) # Formats the json print mesages to be easy read
-raw_data = json.load(open("BGStatsExport/2022-12-12.json",encoding="utf8"))
+pp = pprint.PrettyPrinter(depth=2) # Formats the json print mesages to be easy read
 verbose=False #How much information to print to the user
 
 
-#TODO GET RID OF THIS
-class BGStatsData:
-    def __init__(self,yyyy=1970, mm=1, dd=1):
-        
-        #seperates the data into main categories
-        self.challenges = raw_data['challenges']
-        self.games = raw_data['games']
-        self.groups = raw_data['groups']
-        self.locations = raw_data['locations']
-        self.players = raw_data['players']
-        self.plays = raw_data['plays']
-        self.timeLimitPlays(yyyy,mm,dd) # Sets the self.plays_timeLim list
-       
-
-    # time limits the plays to a range
-    def timeLimitPlays(self, yyyy,mm,dd):
-        
-        self.plays_timeLim=[]
-        timeRangeStart=datetime.datetime(yyyy, mm, dd) # This is the date to change the start date
-        
-        for i in range(len(self.plays)):
-            gameTime=datetime.datetime.fromisoformat(self.plays[i]['playDate'])
-            if (gameTime>timeRangeStart):
-                self.plays_timeLim.append(self.plays[i])
-
-    # finds the BGG ID from the stat ID
-    def statIDtoBggID(self, statID):
-        for i in range(len(self.games)):
-            if self.games[i]['id'] == statID:
-                BggID = self.games[i]['bggId']
-                return BggID
-
-    # gets a list of each game ID from the plays
-    def plays_BggGameIDs(self):
-        bggGameIDs=[]
-
-        for i in range(len(self.plays_timeLim)):
-            gameRefId= self.plays[i]['gameRefId']
-            bggGameID=self.statIDtoBggID(gameRefId)
-            bggGameIDs.append(bggGameID)
-        return bggGameIDs
-    
-    def countOfMechanics(self):
-        bggID_List=data.plays_BggGameIDs()
-        gameMechanics_nested=[]
-        gameCategories_nested=[]
-        
-        print("Getting the Games info! " + str(len(bggID_List)) + " Games to go!")
-        
-        for i in range(len(bggID_List)):
-            try:
-                time.sleep(0.75)
-                if bggID_List[i] !=0:
-                    specificGame=api_bgg.BGG_gameinfo(bggID_List[i])
-                    gameMechanics_nested.append(specificGame.mechanics())
-                    gameCategories_nested.append(specificGame.categories())
-                print("done with game: ",i)
-            except:
-                print("Error for game number %i, BggID: %i" %(i, bggID_List[i]))
-        
-        
-        print("\n\nAnd the data")
-        
-        # print(gameMechanics_nested)
-        # print(gameCategories_nested) 
-        
-        gameMechanics_flat = [item for sublist in gameMechanics_nested for item in sublist]
-        gameCategories_flat = [item for sublist in gameCategories_nested for item in sublist]
-        
-        # print(gameMechanics_flat)
-        # print(gameCategories_flat)
-        
-        gameMechanics_count=collections.Counter(gameMechanics_flat)
-        gameCategories_count=collections.Counter(gameCategories_flat)
-        
-        print(gameMechanics_count)
-        print(gameCategories_count)
-        
-        plt.bar(range(len(gameMechanics_count)), list(gameMechanics_count.values()), align='center')
-        plt.xticks(range(len(gameMechanics_count)), list(gameMechanics_count.keys()))
-        plt.show()
-        
-        
-        plt.bar(range(len(gameCategories_count)), list(gameCategories_count.values()), align='center')
-        plt.xticks(range(len(gameCategories_count)), list(gameCategories_count.keys()))
-        plt.show()
-            
-    
-    
-
-
-class game:
+class Game:
     def __init__(self, bgg_id, name=None):
         self.bgg_id = bgg_id
         
@@ -195,26 +103,48 @@ def loadPlayers(data):
     return players
 
 def loadGames(data):
+    if os.path.exists('dataExports/games.pickle'):
+        with open('dataExports/games.pickle', 'rb') as f:
+            if verbose: print(f"\tGames have loaded from save")
+            return pickle.load(f)
+    
     games={}
+    gameMax=len(data['games'])
+    
+    for gameNum, game in enumerate(data['games']):
+        # pp.pprint(game)
+        
+        newGame=Game(game['bggId'],game['name'])
+        games[game['id']] = Game(game['bggId'], game['name'])
+        if verbose: print(f"\tLoaded {str((gameNum+1)).zfill(len(str(gameMax)))}/{gameMax}: {game['name']}")
+        time.sleep(2) # so we don't overload the api w/ calls
+    
+    
+    with open('dataExports/games.pickle', 'wb') as f:
+        pickle.dump(games, f)
+        if verbose: print(f"\tGames have been saved!")
+    
     print("Loading Games Done!")
     return games
 
 def timeRange(data,timeRangeStart):
-    timeLimData=[]
-        
+    timeLim_plays=[]
+    originalLength=len(data['plays'])
     
     for play in (data['plays']):
         gameTime=datetime.datetime.fromisoformat(play['playDate'])
         
         
         if (gameTime>=timeRangeStart):
-            timeLimData.append(play)
+            timeLim_plays.append(play)
         
-        if verbose: print(f"game played at {gameTime.strftime('%c')} was {'ADDED' if gameTime>=timeRangeStart else 'REMOVED'}")
+        if verbose: print(f"\tgame played at {gameTime.strftime('%c')} was {'ADDED' if gameTime>=timeRangeStart else 'REMOVED'}")
     
-    if verbose: print(f"reduced to {len(timeLimData)} from {len(data['plays'])} plays\n")
+    data.update({'plays': timeLim_plays})
+    
+    print(f"Reduced to {len(data['plays'])} from {originalLength} plays\n")
         
-    return timeLimData
+    return data
 
 def parseData():
     global verbose
@@ -231,17 +161,15 @@ def parseData():
     if not args.input:
         args.input = os.path.join(os.path.dirname(__file__), 'BGStatsExport/BGStatsExport-2022_12_12.json')
     verbose=args.verbose
-    if verbose: print("\n verbose print statments on! \n")
+    if verbose: print("Verbose print statments on! \n")
     if not args.date:
-        date=datetime.datetime(1970, 1, 1) 
+        date=datetime.datetime(1970, 1, 1) #well before games were recorded
     else:
         dateList=args.date.split("/")
-        if verbose: print(f"{dateList} from {args.date}")
         dd=int(dateList[0])
         mm=int(dateList[1])
         yy=int(dateList[2])
         date=datetime.datetime(yy, mm, dd) 
-        
         
         if verbose: print(f"starting from {dd}/{mm}/{yy} \t{date.date}")
         
@@ -259,6 +187,7 @@ def parseData():
 
 if __name__=='__main__':    
     print("------- Start")
+    
     data=parseData()
     # pp.pprint(raw_data['tags'])
     print("------- Done")

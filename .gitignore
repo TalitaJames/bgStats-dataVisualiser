@@ -4,3 +4,4 @@ BGStatsExport/
 __pycache__/
 *.pyc
 
+*.pickle
