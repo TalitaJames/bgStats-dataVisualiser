@@ -1,7 +1,7 @@
 import pprint
 import time
 import argparse
-import os
+import os, shutil
 import pickle
 
 import requests
@@ -13,17 +13,16 @@ import collections
 import matplotlib.pyplot as plt
 import numpy as np
 
-import api_bgg
-
 pp = pprint.PrettyPrinter(depth=2) # Formats the json print mesages to be easy read
 verbose=False #How much information to print to the user
+directory='dataExport/'
 
 
 class Game:
     def __init__(self, bgg_id, name=None):
         self.bgg_id = bgg_id
         
-        self.plays = collections.defaultdict(int)
+        self.plays = 0
        
         if bgg_id == 0: #game isn't on BGG, has been manually added
             self.image = 'pictureAssets/none_game.png'
@@ -55,10 +54,14 @@ class Player:
     def __str__(self):
         return f"{self.name} (ID {self.id}) has P: {self.plays} W: {self.wins} and Tags: {self.tags}"
 
+def padZeros(num, list):
+    return f"{str(num).zfill(len(str(len(list))))}/{len(list)}"
+
 def loadPlayers(data):
-    if os.path.exists('dataExports/players.pickle'):
-        with open('dataExports/players.pickle', 'rb') as f:
-            if verbose: print("loaded data from pickle\n")
+    global directory
+    if os.path.exists(directory+'players.pickle'):
+        with open(directory+'players.pickle', 'rb') as f:
+            if verbose: print("\tLoaded player data from pickle")
             print("Loading Players Done!\n")
             return pickle.load(f)
     
@@ -86,7 +89,7 @@ def loadPlayers(data):
         
         
         players[human_id] = Player(human_id, human['name'], tags)
-        if verbose: print(f"Loaded {count+1}/{len(data['players'])} {human['name']} \t tags {tags}") 
+        if verbose: print(f"\tLoaded {padZeros(count+1,data['players'])} {human['name']} \t tags {tags}") 
             
     # for each game update each players plays and wins 
     for gamePlay in data['plays']:
@@ -94,39 +97,46 @@ def loadPlayers(data):
             players[player['playerRefId']].plays += 1 
             if player['winner'] == True: players[player['playerRefId']].wins +=1
     
+    
     #save all the data for later use
-    with open('dataExports/players.pickle', 'wb') as f:
-        if verbose: print("saved data")
+    with open(directory +'players.pickle', 'wb') as f:
+        if verbose: print("Saved data")
         pickle.dump(players, f)
         
     print("Loading Players Done!\n")
     return players
 
 def loadGames(data):
-    if os.path.exists('dataExports/games.pickle'):
-        with open('dataExports/games.pickle', 'rb') as f:
-            if verbose: print(f"\tGames have loaded from save")
+    global directory
+    if os.path.exists(directory +'games.pickle'):
+        with open(directory + 'games.pickle', 'rb') as f:
+            if verbose: print(f"\tLoaded games from pickle")
+            print("Loading Games Done!")
             return pickle.load(f)
     
     games={}
     gameMax=len(data['games'])
     
     for gameNum, game in enumerate(data['games']):
-        # pp.pprint(game)
         
-        newGame=Game(game['bggId'],game['name'])
         games[game['id']] = Game(game['bggId'], game['name'])
-        if verbose: print(f"\tLoaded {str((gameNum+1)).zfill(len(str(gameMax)))}/{gameMax}: {game['name']}")
+        if verbose: print(f"\tLoaded {padZeros(gameNum+1,data['games'])}: {game['name']}")
         time.sleep(2) # so we don't overload the api w/ calls
     
+    if verbose: print(f"\nCounting plays:")
     
-    with open('dataExports/games.pickle', 'wb') as f:
+    for i,gamePlay in enumerate(data['plays']):
+        games[gamePlay['gameRefId']].plays += 1
+        if verbose: print(f"\tGame {padZeros(i,data['plays'])}: {games[gamePlay['gameRefId']].name} has {games[gamePlay['gameRefId']].plays} plays")
+    
+    with open(directory + 'games.pickle', 'wb') as f:
         pickle.dump(games, f)
         if verbose: print(f"\tGames have been saved!")
     
     print("Loading Games Done!")
     return games
 
+#limit the data to games played since the input argument date
 def timeRange(data,timeRangeStart):
     timeLim_plays=[]
     originalLength=len(data['plays'])
@@ -147,7 +157,7 @@ def timeRange(data,timeRangeStart):
     return data
 
 def parseData():
-    global verbose
+    global verbose, directory
     
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--new', action='store_true')
@@ -156,40 +166,60 @@ def parseData():
     parser.add_argument('-d', '--date', type=str)
     args = parser.parse_args()
     
-    if args.new and os.path.exists('dataExports/'):
-        os.removedirs('dataExports/')
-    if not args.input:
-        args.input = os.path.join(os.path.dirname(__file__), 'BGStatsExport/BGStatsExport-2022_12_12.json')
     verbose=args.verbose
     if verbose: print("Verbose print statments on! \n")
+    
+    if args.new and os.path.exists(directory):
+        shutil.rmtree(directory)
+    
+    # create the directory if it doesn't exist
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    
+    # find the .json file (defults to a file named after todays date)
+    if not args.input:
+        if verbose: print("No input file specified, looking for todays file")
+        today = datetime.datetime.now()
+        dateString = today.strftime("%Y_%m_%d")
+        if verbose: print(f" Looking for file named 'BGStatsExport/{dateString}.json'")
+        
+        assert os.path.exists(f'BGStatsExport/{dateString}.json'), f"\n\tNo file named 'BGStatsExport/{dateString}.json' found\n"
+        args.input = os.path.join(os.path.dirname(__file__), f'BGStatsExport/{dateString}.json')
+        
+    
+    
+    # date to start counting data from
     if not args.date:
-        date=datetime.datetime(1970, 1, 1) #well before games were recorded
+        dateLim=datetime.datetime(1970, 1, 1) #well before games were recorded
     else:
         dateList=args.date.split("/")
         dd=int(dateList[0])
         mm=int(dateList[1])
         yy=int(dateList[2])
-        date=datetime.datetime(yy, mm, dd) 
+        dateLim=datetime.datetime(yy, mm, dd) 
         
-        if verbose: print(f"starting from {dd}/{mm}/{yy} \t{date.date}")
+        if verbose: print(f"starting from {dd}/{mm}/{yy} \t{dateLim.date}")
         
     
     with open(args.input, 'r', encoding='UTF-8') as f:
         raw_data = json.load(f)
 
-    data=timeRange(raw_data, date)
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), directory)):
+        os.mkdir(os.path.join(os.path.dirname(__file__), directory))
+
+
+    data=timeRange(raw_data, dateLim)
     
     loadPlayers(data)
-    loadGames(data) #TODO have this do things
+    loadGames(data)
     
     return data
 
 
 if __name__=='__main__':    
-    print("------- Start")
-    
+    print("------- Start")    
     data=parseData()
-    # pp.pprint(raw_data['tags'])
     print("------- Done")
     
     
