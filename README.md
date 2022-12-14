@@ -11,4 +11,4 @@ Yet another python project, This takes an exported json file from [bgStats](http
 
 `-d or --date`: The date you would like to limit the play data by
 
-`-i or--input`: The directory of the `.json` file you would like to analyse. Defults to todays date in the format "`BGStatsExport/yyy_mm_dd.json`"
+`-i or --input`: The directory of the `.json` file you would like to analyse. Defults to todays date in the format "`BGStatsExport/yyy_mm_dd.json`"

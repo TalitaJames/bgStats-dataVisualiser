@@ -1,7 +1,13 @@
-*.json
-pictureExports/
-BGStatsExport/
-__pycache__/
-*.pyc
 
+# ignore all imported data
+*.json
+BGStatsExport/*
+
+# ignore all exported data
+dataExport/*
+pictureExports/*
 *.pickle
+
+# Ignore all compiled code
+*.pyc
+__pycache__/
