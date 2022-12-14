@@ -17,7 +17,6 @@ pp = pprint.PrettyPrinter(depth=2) # Formats the json print mesages to be easy r
 verbose=False #How much information to print to the user
 directory='dataExport/'
 
-
 class Game:
     def __init__(self, bgg_id, name=None):
         self.bgg_id = bgg_id
