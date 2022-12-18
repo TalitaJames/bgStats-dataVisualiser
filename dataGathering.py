@@ -71,7 +71,6 @@ def loadPlayers(data):
         human_id=human['id']
         tags=[]
                 
-        #TODO update code such that it works with tags
         try:
             tagRawData=human['tags']
         except KeyError:
@@ -210,10 +209,10 @@ def parseData():
 
     data=timeRange(raw_data, dateLim)
     
-    loadPlayers(data)
-    loadGames(data)
+    playerData=loadPlayers(data)
+    gameData=loadGames(data)
     
-    return data
+    return playerData, gameData
 
 
 if __name__=='__main__':    

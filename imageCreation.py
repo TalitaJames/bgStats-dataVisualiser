@@ -1,7 +1,10 @@
 from PIL import Image, ImageDraw, ImageFont 
+import requests
+from io import BytesIO
 import dataGathering
 
-
+# takes a list and returns a string 
+# "1. data\n2. data" of the top x items in the list
 def topX(list, x):
     string=""
     max=x
@@ -13,9 +16,8 @@ def topX(list, x):
 
     return string
 
-
 def gamesWrapped():
-    width = 1080
+    width = 1280
     height = 1920
 
     wrapped=Image.open('pictureAssets/Spotify_Wrapped_Blank.jpg')
@@ -46,51 +48,96 @@ def gamesWrapped():
     wrapped.save('pictureExports/wrapped.png')
 
 
-def topGames():
+def topGames(list):
+    games=['Spot It', 'Ticket to Ride', 'Catan', 'Codenames', 'Pandemic']
+    mechanics=['Pattern Recognition', 'Strategy', 'Communication Limits', 'Strategy', 'Strategy']
 
+    #region Fonts
     font_heading = ImageFont.truetype('pictureAssets/fonts/CircularStd-Black.ttf', 320)
     font_game = ImageFont.truetype('pictureAssets/fonts/CircularStd-Medium.ttf', 175)
     font_subtext = ImageFont.truetype('pictureAssets/fonts/CircularStd-Book.ttf', 150)
     
+    font_BG = ImageFont.truetype('pictureAssets/fonts/CircularStd-Bold.ttf', 210)
+    font_footer = ImageFont.truetype('pictureAssets/fonts/CircularStd-Bold.ttf', 175)
+    #endregion
     
     wrapped=Image.open('pictureAssets/topGamesBlank.jpg')
-    
     wrappedDraw = ImageDraw.Draw(wrapped)  
-    wrappedDraw.text((500, 820), 'My Top Games', 'black', font=font_heading)
    
     
-    wrappedDraw.rectangle([(1900,1800),(4500,6500)], fill ="#F774C4")
-
+    #blanks out the original text used to time things up
+    pink="#F774C4"
+    wrappedDraw.rectangle([(1900,1800),(4500,6500)], fill =pink) # song names
+    wrappedDraw.rectangle([(0,820),(4500,1500)], fill =pink) # heading
+    wrappedDraw.rectangle([(0,7000),(4500,8000)], fill =pink) # watermark
+   
+    #region footer, logo, title 
+    wrappedDraw.text((500, 820), 'My Top Games', 'black', font=font_heading) #heading
+    
+    #logo
+    bgLogo=Image.open('pictureAssets/bgStatsLogo.png')
+    
+    bgResize=int(0.60*bgLogo.width)
+    bgLogo=bgLogo.resize((bgResize,bgResize))
+    bg_x=250
+    bg_y=7440
+    wrapped.paste(bgLogo, (bg_x, bg_y), mask=bgLogo)
+    wrappedDraw.text((bg_x+bgResize+30, bg_y+0.3*bgResize), "BG Stats", 'black', font=font_BG)
+    
+   
+    wrappedDraw.text((2250, bg_y+0.3*bgResize), "TALITAJAMES.COM/BG", 'black', font=font_footer)  #link
+    #endregion
+    
+    #the five games
     for i in range(5):
-        # game images
+        #region game images
+        #start x,y
         x_im=940
         y_im=1600+974*i
-        wrappedDraw.rectangle([(x_im,y_im),(x_im+875,y_im+875)], fill ="green")
+        
+        gameImageURL=list[i].image
+        response = requests.get(gameImageURL)
+        gameImage = Image.open(BytesIO(response.content))
+        gameImage.save('pictureAssets/gameimage.png')
+                
+        gameImage=gameImage.resize((875,875))
+        wrapped.paste(gameImage, (x_im,y_im))
+        
+        #endregion
         
         x_txt=1980
         y_txt=1820
         # Game name
-        wrappedDraw.text((x_txt, y_txt+980*i), 'Hard to be the bard', 'black', font=font_game)
-        
+        wrappedDraw.text((x_txt, y_txt+980*i), list[i].name, 'black', font=font_game)
+       
+       
         #subtext  
-        wrappedDraw.text((x_txt, y_txt+980*i+310), 'Christian Borle', 'black', font=font_subtext)
+        wrappedDraw.text((x_txt, y_txt+980*i+310), str(list[i].mechanics), 'black', font=font_subtext)
 
 
 
     wrapped.save('pictureExports/topGames.png')
     
-    
-    # Colour pink = #F774C4
-
-
-
-
-
-
 
 
 if __name__=='__main__':    
-    # data=dataGathering.parseData()
-    # playerData=data['playerData']
-    topGames()
-    print("***** DONE gteen farts *****\n\n")
+    print("***** Start *****")
+    playerData, gameData = dataGathering.parseData()
+    
+    #region for player and game, sorts into lists
+    
+    #games sorted by play count
+    gameList = [game for game in gameData.values()]
+    gameList.sort(key=lambda x: x.plays, reverse=True)
+    
+    #players sorted by play count then win count
+    playerCountList = [player for player in playerData.values()]
+    playerWinList=playerCountList
+    
+    playerCountList.sort(key=lambda x: x.plays, reverse=True)
+    playerWinList.sort(key=lambda x: x.wins, reverse=True)
+    
+    #endregion
+    
+    topGames(gameList)
+    print("***** DONE *****\n\n")
