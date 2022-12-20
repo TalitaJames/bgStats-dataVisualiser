@@ -16,110 +16,105 @@ def topX(list, x):
 
     return string
 
-def gamesWrapped():
+def overview(playData):
 
-    wrapped=Image.open('pictureAssets/spotifyWrapped_blank.jpg')
-    wrappedDraw = ImageDraw.Draw(wrapped)  
+    wingspan=Image.open('pictureAssets/blankDesigns_WingspanSquare.jpg')
+    wingspanDraw = ImageDraw.Draw(wingspan)  
     
     #region Fonts
-    font = ImageFont.truetype('pictureAssets/fonts/Courier Prime.ttf', 50)
-    font_heading = ImageFont.truetype('pictureAssets/fonts/Courier Prime.ttf', 40)
-    font_big = ImageFont.truetype('pictureAssets/fonts/Courier Prime Bold.ttf', 60)
-    font_year = ImageFont.truetype('pictureAssets/fonts/Courier Prime Bold.ttf', 112)
+    font_heading=ImageFont.truetype('pictureAssets/fonts/BebasNeue-Regular.ttf', 850)
+    font_subtext=ImageFont.truetype('pictureAssets/fonts/ThirstyRoughLtTwo.ttf', 320)
+    font_text=ImageFont.truetype('pictureAssets/fonts/Shaky Hand Some Comic.ttf', 320)
+    font_footer=ImageFont.truetype('pictureAssets/fonts/Shaky Hand Some Comic.ttf', 240)
+                
+    brown="#49423E"
+    
     #endregion
-    
-    wrappedDraw.text((40, 200), 'Games', 'white', font=font_year)
-    
-    wrappedDraw.rectangle([(265,242),(813,790)], fill ="green")
 
+    #region data
+    playCount=len(playData)
+        
+    gamePlayList=[play.bgg_id for count, play in playData.items()]
+        
+    distinctGames = len(set(gamePlayList))
+    #endregion
+
+    wingspanDraw.text((wingspan.width//2,1100),'Games of 2022',fill='white',font=font_heading,anchor='ms')
     
+    wingspanDraw.text((760,2900),f'{playCount} Games played',fill=brown,font=font_text)
+    wingspanDraw.text((2700,4600),f'{distinctGames} Distinct Games',fill=brown,font=font_text)
     
-    # 2*height/3=1280
-    players=["Talita James", "Elisa James", "Xander James", "Esther Whitehead", "Joel Donnelly", "Nigel James", "Zack Alloggia", "Aarom Riley"]
-    playerTop5List=topX(players,5)
-    
-    wrappedDraw.text((100,1100),'Most Played',fill='white',font=font_big)
-    wrappedDraw.multiline_text((100, 1175), playerTop5List, 'white', font=font, spacing=20)
-    
-    wrappedDraw.text((570,1100),'Game Played',fill='white',font=font_big)
-    # wrappedDraw.multiline_text(xy, text, fill=None, font=None, anchor=None, spacing=0, align=”left”)
+    wingspanDraw.text((wingspan.width-100, wingspan.height-100), "TALITAJAMES.COM/BG", brown, font=font_footer, anchor='rs')
 
 
-    wrapped.save('pictureExports/wrapped.png')
+    wingspan.save('pictureExports/overview_wingspan.png')
+
 
 def topGames(gameList):
 
     #region Fonts
-    font_heading = ImageFont.truetype('pictureAssets/fonts/CircularStd-Black.ttf', 320)
-    font_game = ImageFont.truetype('pictureAssets/fonts/CircularStd-Medium.ttf', 175)
-    font_subtext = ImageFont.truetype('pictureAssets/fonts/CircularStd-Book.ttf', 130)
+    font_heading = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 350)
+    font_game = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 200)
+    font_subtext = ImageFont.truetype('pictureAssets/fonts/times.ttf', 130)
     
-    font_BG = ImageFont.truetype('pictureAssets/fonts/CircularStd-Bold.ttf', 210)
-    font_footer = ImageFont.truetype('pictureAssets/fonts/CircularStd-Bold.ttf', 175)
+    font_footer = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 175)
+    brown="#914233"
     #endregion
     
-    wrapped=Image.open('pictureAssets/topGamesBlank.jpg')
-    wrappedDraw = ImageDraw.Draw(wrapped)  
+    potion=Image.open('pictureAssets/blankDesigns_PotionSquare.jpg')
+    potionDraw = ImageDraw.Draw(potion)  
    
+    potionDraw.text((potion.width//2, 525), 'TOP GAMES PLAYED', brown, font=font_heading,anchor='ms')
+
+    #footer
+    potionDraw.text((potion.width-200,potion.height-150), "TALITAJAMES.COM/BG", brown, font=font_footer,anchor='rs')
     
-    #blanks out the original text used to time things up
-    pink="#F774C4"
-    wrappedDraw.rectangle([(1900,1800),(4500,6500)], fill =pink) # song names
-    wrappedDraw.rectangle([(0,820),(4500,1500)], fill =pink) # heading
-    wrappedDraw.rectangle([(0,7000),(4500,8000)], fill =pink) # watermark
-   
-    #region footer, logo, title 
-    wrappedDraw.text((500, 820), 'My Top Games', 'black', font=font_heading) #heading
+    x1,y1,x2,y2=1050,1000,4050,2250
+    titleOffset=300
+    infoOffset=190
+    position=[(x1,y1),(x2,y1),(x1,y2),(x2,y2)]
+    colour=["#AF9500","#969696","#6A3805","#FF00B3"] #gold, silver, bronze, hot pink
     
-    #logo
-    bgLogo=Image.open('pictureAssets/bgStatsLogo.png')
-    
-    bgResize=int(0.60*bgLogo.width)
-    bgLogo=bgLogo.resize((bgResize,bgResize))
-    bg_x=250
-    bg_y=7440
-    wrapped.paste(bgLogo, (bg_x, bg_y), mask=bgLogo)
-    wrappedDraw.text((bg_x+bgResize+30, bg_y+0.3*bgResize), "BG Stats", 'black', font=font_BG)
-    
-   
-    wrappedDraw.text((2250, bg_y+0.3*bgResize), "TALITAJAMES.COM/BG", 'black', font=font_footer)  #link
-    #endregion
-    
-    # the five games
-    for i in range(5):
+    for i in range(4):
         #region game images
-        #start x,y
-        x_im=940
-        y_im=1600+974*i
-        
+            
         gameImageURL=gameList[i].image
-        # print(f" {gameList[i].name} image url: {gameImageURL}")
         if gameList[i].bgg_id==0:
             gameImage = Image.open('pictureAssets/none_game.png')
         else:
             response = requests.get(gameImageURL)
             gameImage = Image.open(BytesIO(response.content))
             gameImage.save('pictureAssets/gameimage.png')
-                
-        gameImage=gameImage.resize((875,875))
-        wrapped.paste(gameImage, (x_im,y_im))
+        
+        imSize=750
+        gameImage=gameImage.resize((imSize,imSize))
+        potion.paste(gameImage, (position[i][0]-imSize,position[i][1]))
         
         #endregion
         
-        x_txt=1980
-        y_txt=1745
-        # Game name
-        wrappedDraw.text((x_txt, y_txt+980*i), gameList[i].name, 'black', font=font_game)
-       
-        mechanics=gameList[i].mechanics
-        mechanics_str="\n".join(mechanics[:3])
-        # print(f" for {gameList[i].name} {mechanics_str}")
+        #game name
+        potionDraw.text((position[i][0]+titleOffset,position[i][1]), gameList[i].name, brown, font=font_game)
        
         #subtext  
-        # wrappedDraw.text((x_txt, y_txt+980*i+310), mechanics_str, 'black', font=font_subtext)
-        wrappedDraw.multiline_text((x_txt, y_txt+980*i+210), mechanics_str, 'black', font=font_subtext,spacing=40)
+        mechanics=gameList[i].mechanics
+        mechanics_str="\n".join(mechanics[:4])
+        # print(f" for {gameList[i].name} {mechanics_str}")
+        
+        potionDraw.multiline_text((position[i][0]+titleOffset//2,position[i][1]+infoOffset), mechanics_str, 'black', font=font_subtext,spacing=10,anchor='la')
+        
+        
+        #draw meeple
+        meeple=Image.open('pictureAssets/meeple.png')
+        scale=0.27
+        meeple=meeple.resize((int(scale*meeple.width),int(scale*meeple.height)))
+        colourBG=Image.new('RGB', (meeple.width,meeple.height), colour[i])
+        mx,my = -35,50
+        potion.paste(colourBG, (position[i][0]-mx,position[i][1]-my), mask=meeple)
+        
+        
 
-    wrapped.save('pictureExports/topGames.png')
+    potion.save('pictureExports/topGames_potion.png')
+
 
 def topMechanics(gameList):
     
@@ -201,16 +196,16 @@ def topPlayers(playerList):
 
         
     cryptidSquare.save('pictureExports/topPlayers_cryptid.png')
-    
+    print("Saved 'topPlayers_cryptid.png'")
     
     
     pass
 
 
-
+# gets data, sorts it, then creates images
 def genPhotos():
     #region data import
-    playerData, gameData, playsData = dataGathering.parseData()
+    playerData, gameData, playData = dataGathering.parseData()
         
     #games sorted by play count
     gameList = [game for game in gameData.values()]
@@ -221,13 +216,22 @@ def genPhotos():
     playerWinList=playerCountList
     
     playerCountList.sort(key=lambda x: x.plays, reverse=True)
+    top5playerCount=[player.name for player in playerCountList[:5]]
+    
     playerWinList.sort(key=lambda x: x.wins, reverse=True)
+    top5winCount=[player.name for player in playerWinList[:5]]
     #endregion
     
+    #FIXME: player count and win count are the same
+    # print(top5playerCount)
+    # print(top5winCount)
     
-    
-    topPlayers(playerCountList)
+    print("***** Generating photos *****")
+    overview(playData)
+    topPlayers(playerCountList)  
     topMechanics(gameList)
+    topGames(gameList)
+    
     pass
 
 
@@ -235,6 +239,5 @@ if __name__=='__main__':
     print("***** Start *****")
    
     genPhotos()
-    # topGames(gameList)
-    # gamesWrapped()
+    # overview()
     print("***** DONE *****\n\n")
