@@ -42,6 +42,20 @@ class Game:
         try: self.name = game_dict['name'][0]['@value']
         except KeyError: self.name = game_dict['name']['@value']
 
+class Play:
+    '''
+    TODO make this a dataclass to store:
+    - location
+    - duration
+    - player count & list (ID numbers)
+    - winner
+    - gameID
+    - date
+    '''
+    def __init__(self, id, name, tags):
+    
+        pass
+
 class Player:
     def __init__(self, id, name, tags):
         self.id = id
