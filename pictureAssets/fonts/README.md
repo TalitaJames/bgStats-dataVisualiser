@@ -12,7 +12,9 @@ Text: CMU-Roman
 
 
 ## Wingspan
-
+Heading: Bebas Neue Regular
+Text: Shaky Hand Some Comic
+Cursive subtext: Thirsty Rough Lt Two
 
 
 ## Potion Explotion
