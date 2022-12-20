@@ -3,6 +3,7 @@
 *.json
 BGStatsExport/*
 pictureAssets/*.ai
+pictureAssets/gameimage.png # this image changes constantly, its the one from bgg data for each game
 
 # ignore all exported data
 dataExport/*

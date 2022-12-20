@@ -73,7 +73,7 @@ def topGames(gameList):
     titleOffset=300
     infoOffset=190
     position=[(x1,y1),(x2,y1),(x1,y2),(x2,y2)]
-    colour=["#AF9500","#969696","#6A3805","#FF00B3"] #gold, silver, bronze, hot pink
+    colour=["#C9B037","#969696","#6A3805","#FF00B3"] #gold, silver, bronze, hot pink
     
     for i in range(4):
         #region game images
@@ -213,18 +213,12 @@ def genPhotos():
     
     #players sorted by play count then win count
     playerCountList = [player for player in playerData.values()]
-    playerWinList=playerCountList
     
     playerCountList.sort(key=lambda x: x.plays, reverse=True)
-    top5playerCount=[player.name for player in playerCountList[:5]]
     
-    playerWinList.sort(key=lambda x: x.wins, reverse=True)
-    top5winCount=[player.name for player in playerWinList[:5]]
     #endregion
     
     #FIXME: player count and win count are the same
-    # print(top5playerCount)
-    # print(top5winCount)
     
     print("***** Generating photos *****")
     overview(playData)
@@ -237,7 +231,12 @@ def genPhotos():
 
 if __name__=='__main__':    
     print("***** Start *****")
-   
-    genPhotos()
-    # overview()
+    if not True: #standard task, else run data for manipluation
+        genPhotos()
+    else:
+        playerData, gameData, playData = dataGathering.parseData()
+        print(playerData[4])
+    
+    
+    
     print("***** DONE *****\n\n")

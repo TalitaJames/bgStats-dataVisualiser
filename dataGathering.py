@@ -64,9 +64,10 @@ class Player:
         self.plays = 0
         self.wins = 0
         self.tags=tags
+        self.gamesList=[]
         
     def __str__(self):
-        return f"{self.name} (ID {self.id}) has P: {self.plays} W: {self.wins} and Tags: {self.tags}"
+        return f"{self.name} (ID {self.id}) has P: {self.plays} W: {self.wins} and Tags: {self.tags}\n\t They have UUIDs of{self.gamesList}"
 
 def padZeros(num, list):
     return f"{str(num).zfill(len(str(len(list))))}/{len(list)}"
@@ -104,10 +105,13 @@ def loadPlayers(data):
         players[human_id] = Player(human_id, human['name'], tags)
         if verbose: print(f"\tLoaded {padZeros(count+1,data['players'])} {human['name']} \t tags {tags}") 
             
-    # for each game update each players plays and wins 
+    # for each game update each players info (uuid, plays & wins)
     for gamePlay in data['plays']:
+        UUID=gamePlay['uuid']
+        if verbose: print(f"Game UUDI: {UUID}")
         for player in gamePlay['playerScores']:                     
             players[player['playerRefId']].plays += 1 
+            players[player['playerRefId']].gamesList.append(UUID)
             if player['winner'] == True: players[player['playerRefId']].wins +=1
     
     
@@ -185,11 +189,12 @@ def loadPlays(data,locations,gameData):
         bgg_id=gameData[play['gameRefId']].bgg_id
         date=play['playDate']
         ignore=play['ignored']
+        # name="NO WIFI"
         name=gameData[play['gameRefId']].name
         players={}
         for count2,person in enumerate(play['playerScores']):
             players[person['playerRefId']]={'score':person['score'],'winner':person['winner']}
-            if verbose: print(f"\t\tLoaded {padZeros(count2+1,play['playerScores'])}: ID:{person['playerRefId']} Score:{person['score']} Winner:{person['winner']}")
+            # if verbose: print(f"\t\tLoaded {padZeros(count2+1,play['playerScores'])}: ID:{person['playerRefId']} Score:{person['score']} Winner:{person['winner']}")
 
         plays[play['uuid']]=Play(location,date,bgg_id,name,ignore,players)
 
@@ -283,8 +288,8 @@ def parseData():
     data=timeRange(raw_data, dateLim)
     
     playerData=loadPlayers(data)
-    gameData=loadGames(data)
     locationData=loadLocations(data)
+    gameData=loadGames(data)
     playData=loadPlays(data,locationData,gameData)
     
     print("-------- Data has been parsed")
