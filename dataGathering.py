@@ -155,19 +155,21 @@ def timeRange(data,timeRangeStart):
     return data
 
 def parseData():
+    print("-------- Starting to parse data")
     global verbose, directory
     
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--new', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-in', '--input', type=str)
-    parser.add_argument('-d', '--date', type=str)
+    parser.add_argument('-in', '--input', type=str, help="the directory to the .json")
+    parser.add_argument('-d', '--date', type=str, help="the date to limit the data by (DD/MM/YYYY)")
     args = parser.parse_args()
     
     verbose=args.verbose
     if verbose: print("Verbose print statments on! \n")
     
-    if args.new and os.path.exists(directory):
+    if (args.new or args.date) and os.path.exists(directory):
+        if verbose: print("Removing old data")
         shutil.rmtree(directory)
     
     # create the directory if it doesn't exist
@@ -212,13 +214,12 @@ def parseData():
     playerData=loadPlayers(data)
     gameData=loadGames(data)
     
-    return playerData, gameData
+    print("-------- Data has been parsed")
+    return playerData, gameData, data
 
 
 if __name__=='__main__':    
-    print("------- Start")    
     data=parseData()
-    print("------- Done")
     
     
     
