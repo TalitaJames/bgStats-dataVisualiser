@@ -18,3 +18,5 @@ Cursive subtext: Thirsty Rough Lt Two
 
 
 ## Potion Explotion
+Heading: Slab Serif HPLHS
+Text: Times new roman (times)
