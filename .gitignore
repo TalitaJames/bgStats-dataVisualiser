@@ -2,6 +2,7 @@
 # ignore all imported data
 *.json
 BGStatsExport/*
+pictureAssets/*.ai
 
 # ignore all exported data
 dataExport/*
@@ -10,4 +11,4 @@ pictureExports/*
 
 # Ignore all compiled code
 *.pyc
-__pycache__/
+__pycache__/*

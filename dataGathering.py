@@ -37,24 +37,25 @@ class Game:
         self.image = game_dict['image']
         self.mechanics = [link['@value'] for link in game_dict['link']
                           if link['@type'] == 'boardgamemechanic']
+        self.categories = [link['@value'] for link in game_dict['link']
+                          if link['@type'] == 'boardgamecategory']
 
         #most games have many names, some have one name
         try: self.name = game_dict['name'][0]['@value']
         except KeyError: self.name = game_dict['name']['@value']
 
 class Play:
-    '''
-    TODO make this a dataclass to store:
-    - location
-    - duration
-    - player count & list (ID numbers)
-    - winner
-    - gameID
-    - date
-    '''
-    def __init__(self, id, name, tags):
-    
-        pass
+    def __init__(self, location, date, bgg_id, name, ignore, players):
+        self.location = location
+        self.date = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M:%S') # eg "2022-12-14 10:00:00",
+        self.bgg_id=bgg_id
+        self.name=name
+        self.ignore=ignore
+        self.players=players # {ID: {name, playerOBJ, winnerBool}}
+        
+  
+    def __str__(self):
+        return f"{self.name} with ID: {self.bgg_id} played at {self.location} on {self.date} with {self.players}"
 
 class Player:
     def __init__(self, id, name, tags):
@@ -123,7 +124,7 @@ def loadGames(data):
     if os.path.exists(directory +'games.pickle'):
         with open(directory + 'games.pickle', 'rb') as f:
             if verbose: print(f"\tLoaded games from pickle")
-            print("Loading Games Done!")
+            print("Loading Games Done!\n")
             return pickle.load(f)
     
     games={}
@@ -145,8 +146,64 @@ def loadGames(data):
         pickle.dump(games, f)
         if verbose: print(f"\tGames have been saved!")
     
-    print("Loading Games Done!")
+    print("Loading Games Done!\n")
     return games
+
+def loadLocations(data):
+    global directory
+    if os.path.exists(directory +'locations.pickle'):
+        with open(directory + 'locations.pickle', 'rb') as f:
+            if verbose: print(f"\tLoaded locations from pickle")
+            print("Loading Locations Done!\n")
+            return pickle.load(f)
+    
+    locations={}
+    for num, location in enumerate(data['locations']):
+        locations[location['id']]=location['name']
+        if verbose: print(f"\tLoaded {padZeros(num+1, data['locations'])} {location['name']}")
+      
+    with open(directory + 'locations.pickle', 'wb') as f:
+        pickle.dump(locations, f)
+        if verbose: print(f"\tlocations have been saved!")  
+        
+    print("Loading Locations Done!\n")
+    return locations
+    
+def loadPlays(data,locations,gameData):
+    global directory
+    if os.path.exists(directory +'plays.pickle'):
+        with open(directory + 'plays.pickle', 'rb') as f:
+            if verbose: print(f"\tLoaded plays from pickle")
+            print("Loading Plays Done!\n")
+            return pickle.load(f)
+    
+    plays={}
+    
+    for count, play in enumerate(data['plays']):
+        try: location=locations[play['locationRefId']]
+        except KeyError: location= None
+        bgg_id=gameData[play['gameRefId']].bgg_id
+        date=play['playDate']
+        ignore=play['ignored']
+        name=gameData[play['gameRefId']].name
+        players={}
+        for count2,person in enumerate(play['playerScores']):
+            players[person['playerRefId']]={'score':person['score'],'winner':person['winner']}
+            if verbose: print(f"\t\tLoaded {padZeros(count2+1,play['playerScores'])}: ID:{person['playerRefId']} Score:{person['score']} Winner:{person['winner']}")
+
+        plays[play['uuid']]=Play(location,date,bgg_id,name,ignore,players)
+
+        
+        if verbose: print(f"\tLoaded {padZeros(count+1,data['plays'])}: {name} bggID {bgg_id}\n")
+    
+    
+    with open(directory + 'plays.pickle', 'wb') as f:
+        pickle.dump(plays, f)
+        if verbose: print(f"\tPlays have been saved!")
+    
+    print("Loading Plays Done!\n")
+    return plays 
+
 
 #limit the data to games played since the input argument date
 def timeRange(data,timeRangeStart):
@@ -227,9 +284,11 @@ def parseData():
     
     playerData=loadPlayers(data)
     gameData=loadGames(data)
+    locationData=loadLocations(data)
+    playData=loadPlays(data,locationData,gameData)
     
     print("-------- Data has been parsed")
-    return playerData, gameData, data
+    return playerData, gameData, playData
 
 
 if __name__=='__main__':    
