@@ -12,3 +12,21 @@ Yet another python project, This takes an exported json file from [bgStats](http
 `-d or --date`: The date you would like to limit the play data by
 
 `-i or --input`: The directory of the `.json` file you would like to analyse. Defults to todays date in the format "`BGStatsExport/yyy_mm_dd.json`"
+
+## TODO
+### Data gathering
+- [X] each player obj to also store a list of the UUIDs of each game they're in
+- [ ] combine time lim method and load plays method so only running thru the plays list once
+- [ ] games obj to track categories & game families
+- [ ] have expected win rate as a player category
+
+
+### Image Gen
+- [ ] potion explotion to be bigger in the game info
+- [ ] top mechanics pic to be flexible for mechanics/family/category
+- [ ] add choice of sort by play count/win count (for cryptid image)
+- [ ] top mechanics to come from game plays not from games owned
+
+### Plotting
+-[x] exclude my plays from bar graph
+-[ ] sort big→ small

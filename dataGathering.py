@@ -222,7 +222,7 @@ def timeRange(data,timeRangeStart):
         if (gameTime>=timeRangeStart):
             timeLim_plays.append(play)
         
-        if verbose: print(f"\tgame played at {gameTime.strftime('%c')} was {'ADDED' if gameTime>=timeRangeStart else 'REMOVED'}")
+        # if verbose: print(f"\tgame played at {gameTime.strftime('%c')} was {'ADDED' if gameTime>=timeRangeStart else 'REMOVED'}")
     
     data.update({'plays': timeLim_plays})
     
