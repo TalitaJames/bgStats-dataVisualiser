@@ -1,7 +1,9 @@
 from PIL import Image, ImageDraw, ImageFont 
 import requests
 from io import BytesIO
+
 import dataGathering
+import plotting
 
 # takes a list and returns a string 
 # "1. data\n2. data" of the top x items in the list
