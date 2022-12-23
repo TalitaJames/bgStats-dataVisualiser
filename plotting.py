@@ -6,7 +6,7 @@ import re
 import operator
 
 pp = pprint.PrettyPrinter(depth=2) # Formats the json print mesages to be easy read
-verbose=True
+verbose=False
 
 # For each tag, counts the number of plays, then graphs the data as a barchart
 def tagBarChart(playerData):
@@ -49,7 +49,10 @@ def tagBarChart(playerData):
     
     plt.ylabel("Play count")
     plt.title("# of plays per group")
-    plt.show()
+    
+    plt.savefig('pictureExports/plotting_tagsBarChart.jpeg', bbox_inches='tight')
+    print("File 'plotting_tagsBarChart.jpeg' has been saved")
+    
 
 def playerBarChart(playerData, playSort=True):
     # sorts either by play count (playSort=True) or win count (playSort=False)
@@ -184,14 +187,7 @@ def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColou
     for s in ['top', 'bottom', 'left', 'right']:
         ax.spines[s].set_visible(False)
     
-    # Remove x, y Ticks
-    ax.xaxis.set_ticks_position('none')
-    ax.yaxis.set_ticks_position('none')
-    
     plt.axis('off')
-    # Add padding between axes and labels
-    ax.xaxis.set_tick_params(pad = 3)
-    ax.yaxis.set_tick_params(pad = 0)
     
     ax.grid(visible = False) # hides x,y gridlines
     ax.invert_yaxis() # Put top values on top
@@ -201,7 +197,7 @@ def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColou
     for i in ax.patches:
         plt.text(i.get_width()+1, i.get_y()+i.get_height()/2,
                 str(round((i.get_width()), 2)),
-                fontsize = 10, fontweight ='bold',  
+                fontsize = 10, 
                 color = textColour, va='center')
     
   
@@ -209,8 +205,46 @@ def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColou
     print("File 'plotting_playerData.png' has been saved")
         
         
+def singlePersonBarChart_png(playerOBJ, sorter='plays', playColour='r', winColour='g', textColour='black'):
+    
+    plays = playerOBJ.plays
+    wins = playerOBJ.wins
+    
+    barWidth=0.5
+    
+    # # Set posplaysion of bar on X axis
+    bar1 = 1
+    bar2 = bar1 + barWidth
+    
+    fig, ax = plt.subplots(1,1)
+    ax.barh(bar1, plays, color = playColour, label ='plays', height=barWidth)
+    ax.barh(bar2, wins, color = winColour, label ='wins',  height=barWidth)
+    
+    
+    # Removes the borders of the plot
+    for s in ['top', 'bottom', 'left', 'right']:
+        ax.spines[s].set_visible(False)
+    
+   
+    ax.grid(visible = False) # hides x,y gridlines
+    ax.invert_yaxis() # Put top values on top
+    plt.axis('off')
+    
+    
+    # Add numbers lables annotation to bars
+    for i in ax.patches:
+        plt.text(i.get_width()+1, i.get_y()+i.get_height()/2,
+                str(round((i.get_width()), 2)),
+                fontsize = 10, 
+                color = textColour, va='center')
+    
+  
+    plt.savefig('pictureExports/plotting_singlePlayerData.png', bbox_inches='tight',transparent=True)
+    print("File 'plotting_singlePlayerData.png' has been saved")
 
-# work out what time i play the most games
+    pass
+
+# TODOwork out what time i play the most games
 def playTime():
     pass
 
@@ -233,7 +267,15 @@ def estWinCount(playerData, playData):
 if __name__=='__main__':
     print("***** Startint plotiong *****")
     playerData, gameData, playData = dataGathering.parseData()
-    # tagBarChart(playerData)
+    
+    tagBarChart(playerData)
     multiPlayerBarChart(playerData, sorter='wins')
     multiPlayerBarChart_png(playerData, sorter='plays')
+    
+    
+    fakePerson=dataGathering.Player(22, 'Annie Easly',[])
+    fakePerson.plays=67
+    fakePerson.wins=36
+    
+    singlePersonBarChart_png(fakePerson, sorter='plays')
    
