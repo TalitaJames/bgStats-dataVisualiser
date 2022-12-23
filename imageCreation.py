@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont 
 import requests
 from io import BytesIO
+import operator
 
 import dataGathering
 import plotting
@@ -19,6 +20,7 @@ def topX(list, x):
     return string
 
 def overview(playData):
+    
 
     wingspan=Image.open('pictureAssets/blankDesigns_WingspanSquare.jpg')
     wingspanDraw = ImageDraw.Draw(wingspan)  
@@ -50,6 +52,8 @@ def overview(playData):
 
 
     wingspan.save('pictureExports/overview_wingspan.png')
+    print("Saved overview_wingspan.png'\n")
+    
 
 
 def topGames(gameList):
@@ -116,6 +120,7 @@ def topGames(gameList):
         
 
     potion.save('pictureExports/topGames_potion.png')
+    print("Saved 'pictureExports/topGames_potion.png")
 
 
 def topMechanics(gameList):
@@ -158,23 +163,27 @@ def topMechanics(gameList):
 
         
     azulSquare.save('pictureExports/topMechanics_azul.png')
+    print("Saved 'pictureExports/topMechanics_azul.png")
     
     
     
-    pass
 
 
-def topPlayers(playerDict):
+def topPlayers(playerDict, sorter='wins'):
     print(f"generating top players image")
     playerDict.pop(1) #get rid of anonymous player
     
     playerList = [player for player in playerDict.values()]
+    sortingChar=operator.attrgetter(sorter)
+    playerList=sorted(playerList, key= lambda x: sortingChar(x), reverse=True)
     
-    playerList.sort(key=lambda x: x.plays, reverse=True)
+    
+    # playerList.sort(key=lambda x: x.plays, reverse=True)
     
     #region fonts
     # font_heading = ImageFont.truetype('pictureAssets/fonts/Algerian-Regular.ttf', 400)
     font_text = ImageFont.truetype('pictureAssets/fonts/CMU-Roman.ttf', 300)
+    font_subtext = ImageFont.truetype('pictureAssets/fonts/CMU-Roman.ttf', 150)
     
     font_footer = ImageFont.truetype('pictureAssets/fonts/CMU-Roman.ttf', 175)
     #endregion
@@ -185,23 +194,17 @@ def topPlayers(playerDict):
     # cryptidSquareDraw.text((2270,1050), 'TOP MECHANICS','black', font=font_heading)  #link
 
     # #region create top players string
-    # topPlayerString=""
     numTop=5
     maxLines=numTop
     if len(playerList)<numTop:
         maxLines=len(playerList)
-    
-    
-    # for i in range(maxLines):      
-    #     topPlayerString += (f"{i+1}. {playerList[i].name if len(playerList[i].name) < 17 else f'{playerList[i].name[:15]}...'} ({playerList[i].plays})\n")
-    # #endregion
 
-    xi,yi=2700,1800 #initial coordinates for the names
-    
-    barScale = max([playerList[0].wins, playerList[0].plays])
+
+    xi,yi=2700,1875 #initial coordinates for the names
+    barScale = max([playerList[0].wins, playerList[0].plays]) #largest value to scale the data by
     
     for i in range(maxLines):
-        y=yi+740*i
+        y=yi+730*i
         x=xi
         yo=y+320
         
@@ -216,8 +219,9 @@ def topPlayers(playerDict):
         barChart=barChart.resize((int(scale*barChart.width),int(scale*barChart.height)))
         cryptidSquare.paste(barChart,(x,yo), mask=barChart)
     
-        
-    # cryptidSquareDraw.multiline_text((2700,1850), topPlayerString,'blue', font=font_text,spacing=390)
+    #subtext
+    cryptidSquareDraw.multiline_text((xi-12,yi+475), "Plays\nWins",'black', font=font_subtext, anchor='rm')
+    cryptidSquareDraw.text((2463,1725), f"By {sorter[:-1]} count",'black', font=font_subtext, anchor='lt')
    
         
     #footer   
@@ -225,7 +229,7 @@ def topPlayers(playerDict):
 
         
     cryptidSquare.save('pictureExports/topPlayers_cryptid.png')
-    print("Saved 'topPlayers_cryptid.png'")
+    print("Saved 'topPlayers_cryptid.png'\n")
     
     
     pass

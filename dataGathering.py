@@ -199,7 +199,7 @@ def loadPlays(data,locations,gameData):
         plays[play['uuid']]=Play(location,date,bgg_id,name,ignore,players)
 
         
-        if verbose: print(f"\tLoaded {padZeros(count+1,data['plays'])}: {name} bggID {bgg_id}\n")
+        if verbose: print(f"\tLoaded {padZeros(count+1,data['plays'])}: {name} bggID {bgg_id}")
     
     
     with open(directory + 'plays.pickle', 'wb') as f:
@@ -222,7 +222,7 @@ def timeRange(data,timeRangeStart):
         if (gameTime>=timeRangeStart):
             timeLim_plays.append(play)
         
-        # if verbose: print(f"\tgame played at {gameTime.strftime('%c')} was {'ADDED' if gameTime>=timeRangeStart else 'REMOVED'}")
+        if verbose: print(f"\tgame played at {gameTime.strftime('%c')} was {'ADDED' if gameTime>=timeRangeStart else 'REMOVED'}")
     
     data.update({'plays': timeLim_plays})
     
@@ -244,7 +244,7 @@ def parseData():
     verbose=args.verbose
     if verbose: print("Verbose print statments on! \n")
     
-    if (args.new or args.date) and os.path.exists(directory):
+    if (args.new) and os.path.exists(directory):
         if verbose: print("Removing old data")
         shutil.rmtree(directory)
     
