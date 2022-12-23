@@ -164,7 +164,13 @@ def topMechanics(gameList):
     pass
 
 
-def topPlayers(playerList):
+def topPlayers(playerDict):
+    print(f"generating top players image")
+    playerDict.pop(1) #get rid of anonymous player
+    
+    playerList = [player for player in playerDict.values()]
+    
+    playerList.sort(key=lambda x: x.plays, reverse=True)
     
     #region fonts
     # font_heading = ImageFont.truetype('pictureAssets/fonts/Algerian-Regular.ttf', 400)
@@ -178,20 +184,41 @@ def topPlayers(playerList):
     cryptidSquareDraw = ImageDraw.Draw(cryptidSquare) 
     # cryptidSquareDraw.text((2270,1050), 'TOP MECHANICS','black', font=font_heading)  #link
 
-    #region create top players string
-    topPlayerString=""
+    # #region create top players string
+    # topPlayerString=""
     numTop=5
     maxLines=numTop
     if len(playerList)<numTop:
         maxLines=len(playerList)
-        
-    for i in range(maxLines):
-        topPlayerString += (f"{i+1}. {playerList[i].name if len(playerList[i].name) < 17 else f'{playerList[i].name[:15]}...'} ({playerList[i].plays})\n")
+    
+    
+    # for i in range(maxLines):      
+    #     topPlayerString += (f"{i+1}. {playerList[i].name if len(playerList[i].name) < 17 else f'{playerList[i].name[:15]}...'} ({playerList[i].plays})\n")
+    # #endregion
 
-    #endregion
+    xi,yi=2700,1800 #initial coordinates for the names
     
+    barScale = max([playerList[0].wins, playerList[0].plays])
     
-    cryptidSquareDraw.multiline_text((2700,1850), topPlayerString,'black', font=font_text,spacing=390)  #link
+    for i in range(maxLines):
+        y=yi+740*i
+        x=xi
+        yo=y+320
+        
+        #make the text
+        playerNameText=f"{i+1}. {playerList[i].name if len(playerList[i].name) < 17 else f'{playerList[i].name[:15]}...'}"
+        cryptidSquareDraw.text((x,y), playerNameText,'black', font=font_text)
+        
+        #plot their plays/wins on a bar chart
+        plotting.singlePlayerBarChart_png(playerList[i], barScale, playColour='#3B173D',winColour='#257CBF')
+        barChart=Image.open('pictureExports/plotting_singlePlayerBarChart.png')
+        scale=1
+        barChart=barChart.resize((int(scale*barChart.width),int(scale*barChart.height)))
+        cryptidSquare.paste(barChart,(x,yo), mask=barChart)
+    
+        
+    # cryptidSquareDraw.multiline_text((2700,1850), topPlayerString,'blue', font=font_text,spacing=390)
+   
         
     #footer   
     cryptidSquareDraw.text((cryptidSquare.width-100, cryptidSquare.height-100), "TALITAJAMES.COM/BG", 'black', font=font_footer, anchor='rs')  #link
@@ -223,17 +250,17 @@ def genPhotos():
     #FIXME: player count and win count are the same
     
     print("***** Generating photos *****")
-    overview(playData)
-    topPlayers(playerCountList)  
-    topMechanics(gameList)
-    topGames(gameList)
+    # overview(playData)
+    topPlayers(playerData)  
+    # topMechanics(gameList)
+    # topGames(gameList)
+    print("***** Photos are Done *****")
     
-    pass
 
 
 if __name__=='__main__':    
     print("***** Start *****")
-    if not True: #standard task, else run data for manipluation
+    if True: #standard task, else run data for manipluation
         genPhotos()
     else:
         playerData, gameData, playData = dataGathering.parseData()

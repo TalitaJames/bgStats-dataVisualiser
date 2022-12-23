@@ -1,9 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 import pprint
-import dataGathering
-import re
 import operator
+import re
+
+import dataGathering
 
 pp = pprint.PrettyPrinter(depth=2) # Formats the json print mesages to be easy read
 verbose=False
@@ -46,12 +48,12 @@ def tagBarChart(playerData):
     # creating the bar plot
     plt.bar(tags, playCounts, color ='maroon',
             width = 0.5)
-    
+    plt.rcParams['savefig.dpi']=200
     plt.ylabel("Play count")
     plt.title("# of plays per group")
     
     plt.savefig('pictureExports/plotting_tagsBarChart.jpeg', bbox_inches='tight')
-    print("File 'plotting_tagsBarChart.jpeg' has been saved")
+    print("\tFile 'plotting_tagsBarChart.jpeg' has been saved")
     
 
 def playerBarChart(playerData, playSort=True):
@@ -78,7 +80,7 @@ def playerBarChart(playerData, playSort=True):
     plt.show()
     
     
-def multiPlayerBarChart(playerData, sorter='plays'):
+def multiPlayerBarChart_jpeg(playerData, sorter='plays'):
     playerData.pop(1) # remove anonomous players
     
     #sort the data
@@ -147,10 +149,10 @@ def multiPlayerBarChart(playerData, sorter='plays'):
   
     plt.legend()
     plt.savefig('pictureExports/plotting_playerData.jpeg')
-    print("File 'plotting_playerData.jpeg' has been saved")
+    print("\tFile 'plotting_playerData.jpeg' has been saved")
  
     
-def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColour='g', textColour='black'):
+def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColour='b', textColour='black'):
     try: playerData.pop(1) # remove anonomous players
     except: pass
     
@@ -158,8 +160,6 @@ def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColou
     sortedPlayer=[player for player in playerData.values()]
     sortingChar=operator.attrgetter(sorter)
     sortedPlayers=sorted(sortedPlayer, key= lambda x: sortingChar(x), reverse=True)
-    
-    
     
     
     # turn the data into lists
@@ -202,49 +202,54 @@ def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColou
     
   
     plt.savefig('pictureExports/plotting_playerData.png', bbox_inches='tight',transparent=True)
-    print("File 'plotting_playerData.png' has been saved")
+    print("\tFile 'plotting_playerData.png' has been saved")
         
         
-def singlePersonBarChart_png(playerOBJ, sorter='plays', playColour='r', winColour='g', textColour='black'):
+def singlePlayerBarChart_png(playerOBJ, scale, playColour='r', winColour='b', textColour='black'):
     
     plays = playerOBJ.plays
     wins = playerOBJ.wins
     
+    
     barWidth=0.5
     
-    # # Set posplaysion of bar on X axis
+    # Set posion of bar on Y axis
     bar1 = 1
     bar2 = bar1 + barWidth
     
-    fig, ax = plt.subplots(1,1)
+    fig, ax = plt.subplots(figsize=(20, 2))
+    
     ax.barh(bar1, plays, color = playColour, label ='plays', height=barWidth)
     ax.barh(bar2, wins, color = winColour, label ='wins',  height=barWidth)
     
     
+    #region make the grid background all blank
+    visible = False # True for testing
     # Removes the borders of the plot
     for s in ['top', 'bottom', 'left', 'right']:
-        ax.spines[s].set_visible(False)
-    
+        ax.spines[s].set_visible(visible)    
    
-    ax.grid(visible = False) # hides x,y gridlines
-    ax.invert_yaxis() # Put top values on top
-    plt.axis('off')
-    
-    
-    # Add numbers lables annotation to bars
+    ax.grid(visible = visible) # hides x,y gridlines
+    ax.invert_yaxis() # Put player values on top
+    plt.axis(f"{'on' if visible else 'off'}")
+    #endregion
+
+    # Add number of win/plays to bars
     for i in ax.patches:
-        plt.text(i.get_width()+1, i.get_y()+i.get_height()/2,
+        plt.text(i.get_width()+1, i.get_y()+i.get_height()/2+0.05,
                 str(round((i.get_width()), 2)),
-                fontsize = 10, 
+                fontsize = 50, 
                 color = textColour, va='center')
+
     
+    plt.xlim(0, scale)
+    plt.rcParams['savefig.dpi']=200 # higher number = higher quality
   
-    plt.savefig('pictureExports/plotting_singlePlayerData.png', bbox_inches='tight',transparent=True)
-    print("File 'plotting_singlePlayerData.png' has been saved")
+    plt.savefig('pictureExports/plotting_singlePlayerBarChart.png', bbox_inches='tight',transparent = not visible)
+    print(f"\tFile 'plotting_singlePlayerBarChart.png' has been saved for {playerOBJ.name}")
 
-    pass
 
-# TODOwork out what time i play the most games
+# TODO work out what time i play the most games
 def playTime():
     pass
 
@@ -269,7 +274,7 @@ if __name__=='__main__':
     playerData, gameData, playData = dataGathering.parseData()
     
     tagBarChart(playerData)
-    multiPlayerBarChart(playerData, sorter='wins')
+    multiPlayerBarChart_jpeg(playerData, sorter='wins')
     multiPlayerBarChart_png(playerData, sorter='plays')
     
     
@@ -277,5 +282,5 @@ if __name__=='__main__':
     fakePerson.plays=67
     fakePerson.wins=36
     
-    singlePersonBarChart_png(fakePerson, sorter='plays')
+    singlePlayerBarChart_png(fakePerson,100) 
    
