@@ -13,3 +13,5 @@ pictureExports/*
 # Ignore all compiled code
 *.pyc
 __pycache__/*
+
+test.py

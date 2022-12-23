@@ -81,7 +81,8 @@ def multiPlayerBarChart(playerData, sorter='plays'):
     #sort the data
     
     sortedPlayer=[player for player in playerData.values()]
-    sortedPlayers=sorted(sortedPlayer, key=operator.attrgetter(sorter), reverse=True)
+    sortingChar=operator.attrgetter(sorter)
+    sortedPlayers=sorted(sortedPlayer, key= lambda x: sortingChar(x), reverse=True)
     
     # turn the data into lists
     playerNames=[player.name for player in sortedPlayers]
@@ -152,7 +153,10 @@ def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColou
     
     #sort the data
     sortedPlayer=[player for player in playerData.values()]
-    sortedPlayers=sorted(sortedPlayer, key=operator.attrgetter(sorter), reverse=True)
+    sortingChar=operator.attrgetter(sorter)
+    sortedPlayers=sorted(sortedPlayer, key= lambda x: sortingChar(x), reverse=True)
+    
+    
     
     
     # turn the data into lists
@@ -231,5 +235,5 @@ if __name__=='__main__':
     playerData, gameData, playData = dataGathering.parseData()
     # tagBarChart(playerData)
     multiPlayerBarChart(playerData, sorter='wins')
-    multiPlayerBarChart_png(playerData, sorter='wins')
+    multiPlayerBarChart_png(playerData, sorter='plays')
    
