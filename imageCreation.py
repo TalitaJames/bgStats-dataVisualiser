@@ -255,7 +255,7 @@ def genPhotos():
     
     print("***** Generating photos *****")
     # overview(playData)
-    topPlayers(playerData)  
+    topPlayers(playerData, sorter='plays')  
     # topMechanics(gameList)
     # topGames(gameList)
     print("***** Photos are Done *****")

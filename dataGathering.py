@@ -26,7 +26,8 @@ class Game:
         if bgg_id == 0: #game isn't on BGG, has been manually added
             self.image = 'pictureAssets/none_game.png'
             self.mechanics = []
-            self.name = name
+            self.categories = []
+            self.name = name 
             return
 
         r = requests.get(
@@ -39,10 +40,15 @@ class Game:
                           if link['@type'] == 'boardgamemechanic']
         self.categories = [link['@value'] for link in game_dict['link']
                           if link['@type'] == 'boardgamecategory']
+        self.families = [link['@value'] for link in game_dict['link']
+                          if link['@type'] == 'boardgamefamily']
 
         #most games have many names, some have one name
         try: self.name = game_dict['name'][0]['@value']
         except KeyError: self.name = game_dict['name']['@value']
+    
+    def __str__(self) -> str:
+        return f"{self.name} with ID: {self.bgg_id} has {self.plays} plays and \n\tmechanics: {self.mechanics}\n\tcategories: {self.categories}\n\tfamilies: {self.families}"
 
 class Play:
     def __init__(self, location, date, bgg_id, name, ignore, players):
@@ -297,7 +303,9 @@ def parseData():
 
 
 if __name__=='__main__':    
-    data=parseData()
+    # data=parseData()
+    catan=Game(13,"Catan")
+    print(catan)
     
     
     

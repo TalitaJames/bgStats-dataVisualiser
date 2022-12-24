@@ -16,17 +16,18 @@ Yet another python project, This takes an exported json file from [bgStats](http
 ## TODO
 ### Data gathering
 - [X] each player obj to also store a list of the UUIDs of each game they're in
-- [ ] combine time lim method and load plays method so only running thru the plays list once
-- [ ] games obj to track categories & game families
+- [ ] ~~combine time lim method and load plays method so only running thru the plays list once~~
+- [x] games obj to track categories & game families
 - [ ] have expected win rate as a player category
+- [ ] if the saved data is avalible, don't care about looking for a file/run a time lim on the file
 
 
 ### Image Gen
 - [ ] potion explotion to be bigger in the game info
 - [ ] top mechanics pic to be flexible for mechanics/family/category
-- [ ] add choice of sort by play count/win count (for cryptid image)
+- [x] add choice of sort by play count/win count (for cryptid image)
 - [ ] top mechanics to come from game plays not from games owned
 
 ### Plotting
--[x] exclude my plays from bar graph
--[ ] sort big→ small
+- [x] exclude my plays from bar graph
+- [x] sort big→ small
