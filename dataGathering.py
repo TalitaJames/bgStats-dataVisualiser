@@ -51,10 +51,11 @@ class Game:
         return f"{self.name} with ID: {self.bgg_id} has {self.plays} plays and \n\tmechanics: {self.mechanics}\n\tcategories: {self.categories}\n\tfamilies: {self.families}"
 
 class Play:
-    def __init__(self, location, date, bgg_id, name, ignore, players):
+    def __init__(self, location, date, bgg_id, gameRefId, name, ignore, players):
         self.location = location
         self.date = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M:%S') # eg "2022-12-14 10:00:00",
         self.bgg_id=bgg_id
+        self.gameRefId=gameRefId
         self.name=name
         self.ignore=ignore
         self.players=players # {ID: {name, playerOBJ, winnerBool}}
@@ -202,7 +203,7 @@ def loadPlays(data,locations,gameData):
             players[person['playerRefId']]={'score':person['score'],'winner':person['winner']}
             # if verbose: print(f"\t\tLoaded {padZeros(count2+1,play['playerScores'])}: ID:{person['playerRefId']} Score:{person['score']} Winner:{person['winner']}")
 
-        plays[play['uuid']]=Play(location,date,bgg_id,name,ignore,players)
+        plays[play['uuid']]=Play(location,date,bgg_id,play['gameRefId'],name,ignore,players)
 
         
         if verbose: print(f"\tLoaded {padZeros(count+1,data['plays'])}: {name} bggID {bgg_id}")

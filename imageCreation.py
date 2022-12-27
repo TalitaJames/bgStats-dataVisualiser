@@ -6,6 +6,9 @@ import operator
 import dataGathering
 import plotting
 
+fileFolder="pictureExports/"
+
+
 # takes a list and returns a string 
 # "1. data\n2. data" of the top x items in the list
 def topX(list, x):
@@ -118,12 +121,12 @@ def topGames(gameList):
         potion.paste(colourBG, (position[i][0]-mx,position[i][1]-my), mask=meeple)
         
         
+    fileName='topGames_potion.png'
+    potion.save(f'{fileFolder}/{fileName}')
+    print("Saved '{fileName}'")
 
-    potion.save('pictureExports/topGames_potion.png')
-    print("Saved 'pictureExports/topGames_potion.png")
 
-
-def topMechanics(gameList):
+def topComponents(playDict, gameDict, sorter='mechanics'):
     
     #region fonts
     font_heading = ImageFont.truetype('pictureAssets/fonts/Algerian-Regular.ttf', 400)
@@ -132,18 +135,23 @@ def topMechanics(gameList):
     font_footer = ImageFont.truetype('pictureAssets/fonts/Algerian-Regular.ttf', 175)
     #endregion
     
+    sortingChar=operator.attrgetter(sorter)
     
-    #region mechanics count
-    mechanicCount={}
+    #region component count
+    componentCount={}
     
-    for game in gameList:
-        mechanics=game.mechanics
-        # print(f"mechanics for {game.name}: {mechanics}")
-        for mech in mechanics:
-            mechanicCount.update({mech:1+int(mechanicCount.get(mech) or 0)})
+    for play in playDict.values():
+        gameId=play.gameRefId
+        
+        game=gameDict[gameId]
+        component=sortingChar(game)
+        # print(f"\t{sorter} for {game.name}: {component}")
+        
+        for mech in component:
+            componentCount.update({mech:1+int(componentCount.get(mech) or 0)})
     
-    mechanicCountList = [mechanism for mechanism in mechanicCount.keys()]
-    mechanicCountList.sort(key=lambda x: mechanicCount[x], reverse=True)
+    mechanicCountList = [mechanism for mechanism in componentCount.keys()]
+    mechanicCountList.sort(key=lambda x: componentCount[x], reverse=True)
     
         
     #endregion
@@ -151,7 +159,7 @@ def topMechanics(gameList):
     #create and heading image
     azulSquare = Image.open('pictureAssets/blankDesigns_AzulSquare.jpg')
     azulSquareDraw = ImageDraw.Draw(azulSquare) 
-    azulSquareDraw.text((2270,1050), 'TOP MECHANICS','black', font=font_heading)  #link
+    azulSquareDraw.text((2270,1050), f'TOP {sorter}','black', font=font_heading)  #link
          
     
     positions = [(1500,1740),(2300,2375),(3250,3300),(1500,3850),(3050,4750)]
@@ -161,17 +169,15 @@ def topMechanics(gameList):
     #footer   
     azulSquareDraw.text((azulSquare.width-100, azulSquare.height-100), "TALITAJAMES.COM/BG", 'black', font=font_footer, anchor='rs')  #link
 
-        
-    azulSquare.save('pictureExports/topMechanics_azul.png')
-    print("Saved 'pictureExports/topMechanics_azul.png")
+    fileName=f"top{sorter.title()}_azul.png"
+    azulSquare.save(f"{fileFolder}{fileName}")
+    print(f"Saved '{fileName}'")
     
-    
-    
-
 
 def topPlayers(playerDict, sorter='wins'):
     print(f"generating top players image")
-    playerDict.pop(1) #get rid of anonymous player
+    try: playerDict.pop(1) #get rid of anonymous player
+    except KeyError: pass
     
     playerList = [player for player in playerDict.values()]
     sortingChar=operator.attrgetter(sorter)
@@ -227,25 +233,23 @@ def topPlayers(playerDict, sorter='wins'):
     #footer   
     cryptidSquareDraw.text((cryptidSquare.width-100, cryptidSquare.height-100), "TALITAJAMES.COM/BG", 'black', font=font_footer, anchor='rs')  #link
 
-        
-    cryptidSquare.save('pictureExports/topPlayers_cryptid.png')
-    print("Saved 'topPlayers_cryptid.png'\n")
-    
-    
-    pass
+    fileName=f"topPlayers_{sorter}_cryptid.png"
+    cryptidSquare.save(f'{fileFolder}{fileName}')
+    print(f"Saved '{fileName}'")
+
 
 
 # gets data, sorts it, then creates images
 def genPhotos():
     #region data import
-    playerData, gameData, playData = dataGathering.parseData()
+    playerDict, gameDict, playDict = dataGathering.parseData()
         
     #games sorted by play count
-    gameList = [game for game in gameData.values()]
+    gameList = [game for game in gameDict.values()]
     gameList.sort(key=lambda x: x.plays, reverse=True)
     
     #players sorted by play count then win count
-    playerCountList = [player for player in playerData.values()]
+    playerCountList = [player for player in playerDict.values()]
     
     playerCountList.sort(key=lambda x: x.plays, reverse=True)
     
@@ -254,11 +258,13 @@ def genPhotos():
     #FIXME: player count and win count are the same
     
     print("***** Generating photos *****")
-    # overview(playData)
-    topPlayers(playerData, sorter='plays')  
-    # topMechanics(gameList)
-    # topGames(gameList)
-    print("***** Photos are Done *****")
+    # overview(playDict)
+    # topPlayers(playerDict, sorter='plays')  
+    # topPlayers(playerDict, sorter='wins')  
+    # topComponents(playDict, gameDict, sorter="mechanics")
+    # topComponents(playDict, gameDict, sorter="categories")
+    topGames(gameList)
+    print("\n***** Photos are Done *****")
     
 
 
