@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from pathlib import Path
 
 import pprint
 import operator
@@ -253,15 +255,14 @@ def singlePlayerBarChart_png(playerOBJ, scale, playColour='r', winColour='b', te
     print(f"\tSaved: {fileName}")
     return f"{fileDirectory}{fileName}"
 
-def dataBarChart_png(dataList, barColour='g', textColour='black'):
-    bWidth=1
-    gapR=0.1
-    gap=0.5*(gapR+bWidth)
+def dataBarChart_png(dataList,labelList=[], barColour='g', textColour='black', countLabels=True, flipAxis=True,textLabels=False):
+    bWidth=1.6
+    gap=0.1
     # arrangement=[0,2,3,6]
     arrangement = [(x*bWidth) for x in np.arange(len(dataList))]
     arrangement=[x+x*gap+bWidth*0.5 for x in arrangement]
         
-    fig, ax = plt.subplots(figsize=(16, 4))
+    fig, ax = plt.subplots(figsize=(16,4))
     
     #region Removes the borders of the plot
     visible = False # True for testing
@@ -272,21 +273,33 @@ def dataBarChart_png(dataList, barColour='g', textColour='black'):
     ax.axis(f"{'on' if visible else 'off'}")
     #endregion
            
+    if flipAxis: ax.invert_yaxis()
+    
     plt.xlim(0, max(dataList))    
                                   
     # creating the bar plot
     plt.barh(arrangement,dataList, color = barColour,height=bWidth)
     
     # Add number of win/plays to bars
-    for i in ax.patches:
-        plt.text(i.get_width()+1, i.get_y()+i.get_height()/2+0.05,
-                str(round((i.get_width()), 2)),
-                fontsize = 50, 
-                color = textColour, va='center')
+    if countLabels:
+        for i in ax.patches:
+            plt.text(i.get_width()+1, i.get_y()+i.get_height()/2+0.05,
+                    str(round((i.get_width()), 2)),
+                    fontsize = 35, 
+                    color = textColour, va='center')
     
+    #adds a line of text per bar
+    if textLabels:
+        fpath = Path("pictureAssets/fonts/times-new-roman-italic.ttf")
+
+        for count,patch in enumerate(ax.patches):
+            plt.text(patch.get_width()-0.2, patch.get_y()+patch.get_height()/2,
+                    labelList[count],
+                    fontsize = 32, color = "white",
+                    font=fpath,
+                    ha='right', va='center')
     
-    
-    #save file
+    #save   
     fileName='plotting_dataBarChart.png'
     plt.savefig(f"{fileDirectory}{fileName}", bbox_inches='tight', transparent = not visible)
     print(f"\tSaved: {fileName}")

@@ -72,22 +72,26 @@ def topGames(gameList):
     brown="#914233"
     #endregion
     
+    intGames=4 #number of games to graph
+    
+    #create image
     potion=Image.open('pictureAssets/blankDesigns_PotionSquare.jpg')
     potionDraw = ImageDraw.Draw(potion)  
    
+    #headint
     potionDraw.text((potion.width//2, 525), 'TOP GAMES PLAYED', brown, font=font_heading,anchor='ms')
 
     #footer
     potionDraw.text((potion.width-200,potion.height-150), "TALITAJAMES.COM/BG", brown, font=font_footer,anchor='rs')
     
-    # x1,y1,x2,y2=1200,1000,4300,2250
+    # coords for the 4 games (done by top right coner of game image)
     x1,y1,x2,y2=1200,1000,4300,2350
     titleOffset=300
     infoOffset=220
     position=[(x1,y1),(x2,y1),(x1,y2),(x2,y2)]
     colour=["#C9B037","#969696","#6A3805","#FF00B3"] #gold, silver, bronze, hot pink
     
-    for i in range(4):
+    for i in range(intGames):
         #region game images
             
         gameImageURL=gameList[i].image
@@ -127,42 +131,37 @@ def topGames(gameList):
         potionDraw.text((position[i][0]+titleOffset, position[i][1] + meeple.height-my), 
                         gameNameClean, brown, font=font_game, anchor='ls')
     
+
+    #region graph for albedus humblescore
     darkGreen="#265127"
     
-    #region text for albedus humblescore
-    # albedus="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eget tristique massa. Duis pharetra urna aliquet dolor varius, eget molestie orci venenatis. Vestibulum in eros tortor. In dignissim, dolor non pharetra egestas, arcu dolor varius metus, sed pretium magna tellus sed risus. Suspendisse quis feugiat eros. In euismod eu massa sit amet luctus. Maecenas tristique, ante at congue pellentesque, nunc quam molestie purus, in gravida urna diam laoreet metus. Integer quis mattis nibh, at tincidunt est. Curabitur iaculis ligula vitae tincidunt faucibus.Vestibulum in eros tortor. In dignissim, dolor non pharetra egestas, arcu dolor varius metus, sed pretium magna tellus sed risus. "
-    # boxLen_top=78
-    # boxLen_bot=65
-    # top_lim=4
-    # bot_lim=3
+    # x1,y1,x2,y2=945,3655,5800,4500
+    x1,y1,x2,y2=1700,3700,5741,5120
     
-    # listAlbedus_top=[albedus[i:i+boxLen_top] for i in range(0, len(albedus), boxLen_top)]
-    # listAlbedus_bot=listAlbedus_top[top_lim:]
-    # listAlbedus_top=listAlbedus_top[:top_lim]
+    # potionDraw.rectangle((x1,y1,x2,y2), fill='#E0FFE0') #to visualise the space
+    playCountDataList=[gameList[i].plays for i in range(intGames)]
+    playCountNameList=[gameList[i].name for i in range(intGames)]
     
-    # strAlbedus_bot=f''.join(listAlbedus_bot)
-  
-    # listAlbedus_bot=[strAlbedus_bot[i:i+boxLen_bot] for i in range(0, len(strAlbedus_bot), boxLen_bot)]
-    # listAlbedus_bot=listAlbedus_bot[:bot_lim]
+    #text (game names on each bar)
+    labelGameBar=[f"{playCountNameList[i]} ({playCountDataList[i]})" for i in range(intGames)]
     
-    # splitAlbedus_top=f'\n'.join(listAlbedus_top)
-    # splitAlbedus_bot=f'\n'.join(listAlbedus_bot)
+    #load the picture
+    graphDirectory=plotting.dataBarChart_png(playCountDataList, labelList=labelGameBar,
+                                             barColour=darkGreen, countLabels=False,
+                                             textLabels=True,flipAxis=False)
+    graphPlayCount=Image.open(graphDirectory)
     
-    # potionDraw.multiline_text((945,3655),splitAlbedus_top,fill=darkGreen,font=font_albedus, spacing=65)
-    # potionDraw.multiline_text((1685, 4475),splitAlbedus_bot,fill=darkGreen,font=font_albedus, spacing=65) 
-    #endregion
-      
-    #region graph for albedus humblescore
-    potionDraw.rectangle((945,3655,5800,4500), fill=darkGreen)
+    #scale the image to fit in the box with corners of (x1,y1) and (x2,y2)
+    width_final=x2-x1
+    height_final=y2-y1
+    wScale=width_final/graphPlayCount.width
+    hScale=height_final/graphPlayCount.height
+    scale=min(wScale,hScale)
     
-    # dataList=[20,40,53,56]
-    # graphDirectory=plotting.dataBarChart_png(dataList, barColour=darkGreen)
-    # graphPlayCount=Image.open(graphDirectory)
-    # scale=3
-    # graphPlayCount=graphPlayCount.resize((int(scale*graphPlayCount.width),int(scale*graphPlayCount.height)))
+    graphPlayCount=graphPlayCount.resize((int(scale*graphPlayCount.width),int(scale*graphPlayCount.height)))
+    # graphPlayCount=graphPlayCount.resize((int(wScale*graphPlayCount.width),int(hScale*graphPlayCount.height)))
     
-    
-    # potion.paste(graphPlayCount, (945,3655), mask=graphPlayCount)
+    potion.paste(graphPlayCount, (x1,y1+height_final-graphPlayCount.height), mask=graphPlayCount)    
     
     #endregion
         
@@ -299,9 +298,7 @@ def genPhotos():
     playerCountList.sort(key=lambda x: x.plays, reverse=True)
     
     #endregion
-    
-    #FIXME: player count and win count are the same
-    
+        
     print("***** Generating photos *****")
     # overview(playDict)
     # topPlayers(playerDict, sorter='plays')  
@@ -324,3 +321,4 @@ if __name__=='__main__':
     
     
     print("***** DONE *****\n\n")
+   
