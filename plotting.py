@@ -255,14 +255,14 @@ def singlePlayerBarChart_png(playerOBJ, scale, playColour='r', winColour='b', te
     print(f"\tSaved: {fileName}")
     return f"{fileDirectory}{fileName}"
 
-def dataBarChart_png(dataList,labelList=[], barColour='g', textColour='black', countLabels=True, flipAxis=True,textLabels=False):
+def dataBarChart_png(dataList,labelList=[], barColour='g', textColour='white', countLabels=True, flipAxis=True,textLabels=False):
     bWidth=1.6
     gap=0.1
     # arrangement=[0,2,3,6]
     arrangement = [(x*bWidth) for x in np.arange(len(dataList))]
     arrangement=[x+x*gap+bWidth*0.5 for x in arrangement]
         
-    fig, ax = plt.subplots(figsize=(16,4))
+    fig, ax = plt.subplots(figsize=(26,9))
     
     #region Removes the borders of the plot
     visible = False # True for testing
@@ -276,6 +276,7 @@ def dataBarChart_png(dataList,labelList=[], barColour='g', textColour='black', c
     if flipAxis: ax.invert_yaxis()
     
     plt.xlim(0, max(dataList))    
+    ax.invert_xaxis()
                                   
     # creating the bar plot
     plt.barh(arrangement,dataList, color = barColour,height=bWidth)
@@ -295,9 +296,9 @@ def dataBarChart_png(dataList,labelList=[], barColour='g', textColour='black', c
         for count,patch in enumerate(ax.patches):
             plt.text(patch.get_width()-0.2, patch.get_y()+patch.get_height()/2,
                     labelList[count],
-                    fontsize = 32, color = "white",
+                    fontsize = 65, color = textColour,
                     font=fpath,
-                    ha='right', va='center')
+                    ha='left', va='center')
     
     #save   
     fileName='plotting_dataBarChart.png'
