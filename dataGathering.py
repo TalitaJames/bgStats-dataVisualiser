@@ -182,11 +182,11 @@ def loadLocations(data):
     
 def loadPlays(data,locations,gameData):
     global directory
-    if os.path.exists(directory +'plays.pickle'):
-        with open(directory + 'plays.pickle', 'rb') as f:
-            if verbose: print(f"\tLoaded plays from pickle")
-            print("Loading Plays Done!\n")
-            return pickle.load(f)
+    # if os.path.exists(directory +'plays.pickle'):
+    #     with open(directory + 'plays.pickle', 'rb') as f:
+    #         if verbose: print(f"\tLoaded plays from pickle")
+    #         print("Loading Plays Done!\n")
+    #         return pickle.load(f)
     
     plays={}
     
@@ -209,9 +209,9 @@ def loadPlays(data,locations,gameData):
         if verbose: print(f"\tLoaded {padZeros(count+1,data['plays'])}: {name} bggID {bgg_id}")
     
     
-    with open(directory + 'plays.pickle', 'wb') as f:
-        pickle.dump(plays, f)
-        if verbose: print(f"\tPlays have been saved!")
+    # with open(directory + 'plays.pickle', 'wb') as f:
+    #     pickle.dump(plays, f)
+    #     if verbose: print(f"\tPlays have been saved!")
     
     print("Loading Plays Done!\n")
     return plays 

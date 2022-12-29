@@ -66,7 +66,7 @@ def topGames(gameList):
     font_heading = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 350)
     font_game = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 300)
     font_subtext = ImageFont.truetype('pictureAssets/fonts/times-new-roman.ttf', 175)
-    font_albedus = ImageFont.truetype('pictureAssets/fonts/times-new-roman-italic.ttf', 155)
+    font_albedus = ImageFont.truetype('pictureAssets/fonts/times-new-roman-italic.ttf', 200)
     
     font_footer = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 175)
     brown="#914233"
@@ -87,12 +87,13 @@ def topGames(gameList):
     # coords for the 4 games (done by top right coner of game image)
     x1,y1,x2,y2=1200,1000,4300,2350
     titleOffset=300
-    infoOffset=220
+    infoOffset=200
     position=[(x1,y1),(x2,y1),(x1,y2),(x2,y2)]
     colour=["#C9B037","#969696","#6A3805","#B3E5FC"] #gold, silver, bronze, hot pink
     
+    #draw each four games
     for i in range(intGames):
-        #region game images
+        #paste the game image
             
         gameImageURL=gameList[i].image
         if gameList[i].bgg_id==0:
@@ -105,15 +106,14 @@ def topGames(gameList):
         imSize=950
         gameImage=gameImage.resize((imSize,imSize))
         potion.paste(gameImage, (position[i][0]-imSize,position[i][1]))
-        
-        #endregion
-        
+                
         #subtext  
         mechanics=gameList[i].mechanics
+        mechanics=[(f'{x[:17]}...') if len(x)>20 else x for x in mechanics]
         mechanics_str="\n".join(mechanics[:4])
         # print(f" for {gameList[i].name} {mechanics_str}")
         
-        potionDraw.multiline_text((position[i][0]+titleOffset//2,position[i][1]+infoOffset), mechanics_str, 'black', font=font_subtext,spacing=10,anchor='la')
+        potionDraw.multiline_text((position[i][0]+titleOffset//2-70,position[i][1]+infoOffset), mechanics_str, 'black', font=font_subtext,spacing=10,anchor='la')
         
         
         #draw meeple
@@ -136,7 +136,11 @@ def topGames(gameList):
     darkGreen="#265127"
     
     # x1,y1,x2,y2=945,3655,5800,4500
-    x1,y1,x2,y2=1700,3700,5741,5120
+    # x1,y1,x2,y2=1700,3700,5741,5120
+    # x3,y3= 959,3760 #top left corner of the speech bubble
+    x1,y1,x2,y2=959,3700,5741,5120
+    x3= 1700 #bottom left (far down) corner 
+    
     
     # potionDraw.rectangle((x1,y1,x2,y2), fill='#E0FFE0') #to visualise the space
     playCountDataList=[gameList[i].plays for i in range(intGames)]
@@ -148,7 +152,7 @@ def topGames(gameList):
     #load the picture
     graphDirectory=plotting.dataBarChart_png(playCountDataList, labelList=labelGameBar,
                                              barColour=darkGreen, countLabels=False,
-                                             textLabels=True,flipAxis=False)
+                                             textLabels=True,flipAxis=True)
     graphPlayCount=Image.open(graphDirectory)
     
     #scale the image to fit in the box with corners of (x1,y1) and (x2,y2)
@@ -158,10 +162,15 @@ def topGames(gameList):
     hScale=height_final/graphPlayCount.height
     scale=min(wScale,hScale)
     
+    #keep aspect ratio
     graphPlayCount=graphPlayCount.resize((int(scale*graphPlayCount.width),int(scale*graphPlayCount.height)))
+    
+    #warp graph to best fill
     # graphPlayCount=graphPlayCount.resize((int(wScale*graphPlayCount.width),int(hScale*graphPlayCount.height)))
     
-    potion.paste(graphPlayCount, (x1,y1+height_final-graphPlayCount.height), mask=graphPlayCount)    
+    #paste the graph in
+    potion.paste(graphPlayCount, (x1+width_final-graphPlayCount.width,y1+height_final-graphPlayCount.height), mask=graphPlayCount)    
+    potionDraw.text((x3,y2-450), 'Play\nCount\nGrap'.upper(), darkGreen, font=font_albedus, anchor='ls')
     
     #endregion
         
@@ -219,7 +228,7 @@ def topComponents(playDict, gameDict, sorter='mechanics'):
     
 
 def topPlayers(playerDict, sorter='wins'):
-    print(f"generating top players image")
+    
     try: playerDict.pop(1) #get rid of anonymous player
     except KeyError: pass
     
@@ -243,7 +252,7 @@ def topPlayers(playerDict, sorter='wins'):
     cryptidSquareDraw = ImageDraw.Draw(cryptidSquare) 
     # cryptidSquareDraw.text((2270,1050), 'TOP MECHANICS','black', font=font_heading)  #link
 
-    # #region create top players string
+    #create top players string
     numTop=5
     maxLines=numTop
     if len(playerList)<numTop:

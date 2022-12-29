@@ -252,7 +252,7 @@ def singlePlayerBarChart_png(playerOBJ, scale, playColour='r', winColour='b', te
   
     fileName='plotting_singlePlayerBarChart.png'
     plt.savefig(f"{fileDirectory}{fileName}", bbox_inches='tight', transparent = not visible)
-    print(f"\tSaved: {fileName}")
+    print(f"\tSaved: {fileName} for {playerOBJ.name}")
     return f"{fileDirectory}{fileName}"
 
 def dataBarChart_png(dataList,labelList=[], barColour='g', textColour='white', countLabels=True, flipAxis=True,textLabels=False):

@@ -23,10 +23,11 @@ Yet another python project, This takes an exported json file from [bgStats](http
 
 
 ### Image Gen
-- [ ] potion explotion to be bigger in the game info
+- [x] potion explotion to be bigger in the game info
 - [x] top mechanics pic to be flexible for mechanics/family/category
 - [x] add choice of sort by play count/win count (for cryptid image)
 - [x] top mechanics to come from game plays not from games owned
+- [ ] make .txt file with image description for each picture
 
 ### Plotting
 - [x] exclude my plays from bar graph
