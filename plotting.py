@@ -291,7 +291,7 @@ def dataBarChart_png(dataList,labelList=[], barColour='g', textColour='white', c
     
     #adds a line of text per bar
     if textLabels:
-        fpath = Path("pictureAssets/fonts/times-new-roman-italic.ttf")
+        fpath = Path("pictureAssets/fonts/times-new-roman.ttf")
 
         for count,patch in enumerate(ax.patches):
             plt.text(patch.get_width()-0.2, patch.get_y()+patch.get_height()/2,

@@ -89,7 +89,7 @@ def topGames(gameList):
     titleOffset=300
     infoOffset=220
     position=[(x1,y1),(x2,y1),(x1,y2),(x2,y2)]
-    colour=["#C9B037","#969696","#6A3805","#FF00B3"] #gold, silver, bronze, hot pink
+    colour=["#C9B037","#969696","#6A3805","#B3E5FC"] #gold, silver, bronze, hot pink
     
     for i in range(intGames):
         #region game images
@@ -127,7 +127,7 @@ def topGames(gameList):
         #game name
         gameName=gameList[i].name
         gameNameClean = re.sub('^(the |a |an )', '', gameName, re.IGNORECASE)
-        gameNameClean = gameNameClean if len(gameNameClean)<19 else f'{gameNameClean[:17]}...'
+        gameNameClean = gameNameClean if len(gameNameClean)<16 else f'{gameNameClean[:14]}...'
         potionDraw.text((position[i][0]+titleOffset, position[i][1] + meeple.height-my), 
                         gameNameClean, brown, font=font_game, anchor='ls')
     
@@ -300,11 +300,11 @@ def genPhotos():
     #endregion
         
     print("***** Generating photos *****")
-    # overview(playDict)
-    # topPlayers(playerDict, sorter='plays')  
-    # topPlayers(playerDict, sorter='wins')  
-    # topComponents(playDict, gameDict, sorter="mechanics")
-    # topComponents(playDict, gameDict, sorter="categories")
+    overview(playDict)
+    topPlayers(playerDict, sorter='plays')  
+    topPlayers(playerDict, sorter='wins')  
+    topComponents(playDict, gameDict, sorter="mechanics")
+    topComponents(playDict, gameDict, sorter="categories")
     topGames(gameList)
     print("\n***** Photos are Done *****")
     
