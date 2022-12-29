@@ -10,6 +10,8 @@ import dataGathering
 pp = pprint.PrettyPrinter(depth=2) # Formats the json print mesages to be easy read
 verbose=False
 
+fileDirectory='pictureExports/'
+
 # For each tag, counts the number of plays, then graphs the data as a barchart
 def tagBarChart(playerData):
     tagCounts={}
@@ -79,7 +81,7 @@ def playerBarChart(playerData, playSort=True):
     plt.title(f"# of {'plays' if playSort else 'wins'} per person")
     plt.show()
     
-    
+# generates a nicely labled and graphed bar chart of the top players    
 def multiPlayerBarChart_jpeg(playerData, sorter='plays'):
     playerData.pop(1) # remove anonomous players
     
@@ -151,7 +153,7 @@ def multiPlayerBarChart_jpeg(playerData, sorter='plays'):
     plt.savefig('pictureExports/plotting_playerData.jpeg')
     print("\tFile 'plotting_playerData.jpeg' has been saved")
  
-    
+# generates png bar graph with all the lables and info removes
 def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColour='b', textColour='black'):
     try: playerData.pop(1) # remove anonomous players
     except: pass
@@ -174,7 +176,7 @@ def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColou
     
     barWidth=0.25
     
-    # # Set posplaysion of bar on X axis
+    # Set posplaysion of bar on X axis
     bar1 = np.arange(len(plays))
     bar2 = [x + barWidth for x in bar1]
     
@@ -204,7 +206,7 @@ def multiPlayerBarChart_png(playerData, sorter='plays', playColour='r', winColou
     plt.savefig('pictureExports/plotting_playerData.png', bbox_inches='tight',transparent=True)
     print("\tFile 'plotting_playerData.png' has been saved")
         
-        
+#genrates a png        
 def singlePlayerBarChart_png(playerOBJ, scale, playColour='r', winColour='b', textColour='black'):
     
     plays = playerOBJ.plays
@@ -245,9 +247,50 @@ def singlePlayerBarChart_png(playerOBJ, scale, playColour='r', winColour='b', te
     plt.xlim(0, scale)
     plt.rcParams['savefig.dpi']=200 # higher number = higher quality
   
-    plt.savefig('pictureExports/plotting_singlePlayerBarChart.png', bbox_inches='tight',transparent = not visible)
-    print(f"\tFile 'plotting_singlePlayerBarChart.png' has been saved for {playerOBJ.name}")
+  
+    fileName='plotting_singlePlayerBarChart.png'
+    plt.savefig(f"{fileDirectory}{fileName}", bbox_inches='tight', transparent = not visible)
+    print(f"\tSaved: {fileName}")
+    return f"{fileDirectory}{fileName}"
 
+def dataBarChart_png(dataList, barColour='g', textColour='black'):
+    bWidth=1
+    gapR=0.1
+    gap=0.5*(gapR+bWidth)
+    # arrangement=[0,2,3,6]
+    arrangement = [(x*bWidth) for x in np.arange(len(dataList))]
+    arrangement=[x+x*gap+bWidth*0.5 for x in arrangement]
+        
+    fig, ax = plt.subplots(figsize=(16, 4))
+    
+    #region Removes the borders of the plot
+    visible = False # True for testing
+    for s in ['top', 'bottom', 'left', 'right']:
+        ax.spines[s].set_visible(visible)    
+   
+    ax.grid(visible = visible) # hides x,y gridlines
+    ax.axis(f"{'on' if visible else 'off'}")
+    #endregion
+           
+    plt.xlim(0, max(dataList))    
+                                  
+    # creating the bar plot
+    plt.barh(arrangement,dataList, color = barColour,height=bWidth)
+    
+    # Add number of win/plays to bars
+    for i in ax.patches:
+        plt.text(i.get_width()+1, i.get_y()+i.get_height()/2+0.05,
+                str(round((i.get_width()), 2)),
+                fontsize = 50, 
+                color = textColour, va='center')
+    
+    
+    
+    #save file
+    fileName='plotting_dataBarChart.png'
+    plt.savefig(f"{fileDirectory}{fileName}", bbox_inches='tight', transparent = not visible)
+    print(f"\tSaved: {fileName}")
+    return f"{fileDirectory}{fileName}"
 
 # TODO work out what time i play the most games
 def playTime():
@@ -270,17 +313,24 @@ def estWinCount(playerData, playData):
 
 
 if __name__=='__main__':
-    print("***** Startint plotiong *****")
     playerData, gameData, playData = dataGathering.parseData()
+    print("***** Startint ploting *****")
     
-    tagBarChart(playerData)
-    multiPlayerBarChart_jpeg(playerData, sorter='wins')
-    multiPlayerBarChart_png(playerData, sorter='plays')
+    # tagBarChart(playerData)
+    # playerBarChart(playerData)
+    # multiPlayerBarChart_jpeg(playerData, sorter='wins')
+    # multiPlayerBarChart_png(playerData, sorter='plays')
     
     
-    fakePerson=dataGathering.Player(22, 'Annie Easly',[])
-    fakePerson.plays=67
-    fakePerson.wins=36
+    # fakePerson=dataGathering.Player(22, 'Annie Easly',[])
+    # fakePerson.plays=67
+    # fakePerson.wins=36
     
-    singlePlayerBarChart_png(fakePerson,100) 
+    # singlePlayerBarChart_png(fakePerson,100) 
+    
+    
+    dataList=[12,15,30,45]
+    dataBarChart_png(dataList)
+    
+    print("***** Finished ploting *****")
    

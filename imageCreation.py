@@ -1,5 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont 
 import requests
+import re
 from io import BytesIO
 import operator
 
@@ -63,8 +64,9 @@ def topGames(gameList):
 
     #region Fonts
     font_heading = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 350)
-    font_game = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 200)
-    font_subtext = ImageFont.truetype('pictureAssets/fonts/times.ttf', 130)
+    font_game = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 300)
+    font_subtext = ImageFont.truetype('pictureAssets/fonts/times-new-roman.ttf', 175)
+    font_albedus = ImageFont.truetype('pictureAssets/fonts/times-new-roman-italic.ttf', 155)
     
     font_footer = ImageFont.truetype('pictureAssets/fonts/SlabSerHPLHS.ttf', 175)
     brown="#914233"
@@ -78,9 +80,10 @@ def topGames(gameList):
     #footer
     potionDraw.text((potion.width-200,potion.height-150), "TALITAJAMES.COM/BG", brown, font=font_footer,anchor='rs')
     
-    x1,y1,x2,y2=1050,1000,4050,2250
+    # x1,y1,x2,y2=1200,1000,4300,2250
+    x1,y1,x2,y2=1200,1000,4300,2350
     titleOffset=300
-    infoOffset=190
+    infoOffset=220
     position=[(x1,y1),(x2,y1),(x1,y2),(x2,y2)]
     colour=["#C9B037","#969696","#6A3805","#FF00B3"] #gold, silver, bronze, hot pink
     
@@ -95,15 +98,12 @@ def topGames(gameList):
             gameImage = Image.open(BytesIO(response.content))
             gameImage.save('pictureAssets/gameimage.png')
         
-        imSize=750
+        imSize=950
         gameImage=gameImage.resize((imSize,imSize))
         potion.paste(gameImage, (position[i][0]-imSize,position[i][1]))
         
         #endregion
         
-        #game name
-        potionDraw.text((position[i][0]+titleOffset,position[i][1]), gameList[i].name, brown, font=font_game)
-       
         #subtext  
         mechanics=gameList[i].mechanics
         mechanics_str="\n".join(mechanics[:4])
@@ -120,10 +120,55 @@ def topGames(gameList):
         mx,my = -35,50
         potion.paste(colourBG, (position[i][0]-mx,position[i][1]-my), mask=meeple)
         
+        #game name
+        gameName=gameList[i].name
+        gameNameClean = re.sub('^(the |a |an )', '', gameName, re.IGNORECASE)
+        gameNameClean = gameNameClean if len(gameNameClean)<19 else f'{gameNameClean[:17]}...'
+        potionDraw.text((position[i][0]+titleOffset, position[i][1] + meeple.height-my), 
+                        gameNameClean, brown, font=font_game, anchor='ls')
+    
+    darkGreen="#265127"
+    
+    #region text for albedus humblescore
+    # albedus="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eget tristique massa. Duis pharetra urna aliquet dolor varius, eget molestie orci venenatis. Vestibulum in eros tortor. In dignissim, dolor non pharetra egestas, arcu dolor varius metus, sed pretium magna tellus sed risus. Suspendisse quis feugiat eros. In euismod eu massa sit amet luctus. Maecenas tristique, ante at congue pellentesque, nunc quam molestie purus, in gravida urna diam laoreet metus. Integer quis mattis nibh, at tincidunt est. Curabitur iaculis ligula vitae tincidunt faucibus.Vestibulum in eros tortor. In dignissim, dolor non pharetra egestas, arcu dolor varius metus, sed pretium magna tellus sed risus. "
+    # boxLen_top=78
+    # boxLen_bot=65
+    # top_lim=4
+    # bot_lim=3
+    
+    # listAlbedus_top=[albedus[i:i+boxLen_top] for i in range(0, len(albedus), boxLen_top)]
+    # listAlbedus_bot=listAlbedus_top[top_lim:]
+    # listAlbedus_top=listAlbedus_top[:top_lim]
+    
+    # strAlbedus_bot=f''.join(listAlbedus_bot)
+  
+    # listAlbedus_bot=[strAlbedus_bot[i:i+boxLen_bot] for i in range(0, len(strAlbedus_bot), boxLen_bot)]
+    # listAlbedus_bot=listAlbedus_bot[:bot_lim]
+    
+    # splitAlbedus_top=f'\n'.join(listAlbedus_top)
+    # splitAlbedus_bot=f'\n'.join(listAlbedus_bot)
+    
+    # potionDraw.multiline_text((945,3655),splitAlbedus_top,fill=darkGreen,font=font_albedus, spacing=65)
+    # potionDraw.multiline_text((1685, 4475),splitAlbedus_bot,fill=darkGreen,font=font_albedus, spacing=65) 
+    #endregion
+      
+    #region graph for albedus humblescore
+    potionDraw.rectangle((945,3655,5800,4500), fill=darkGreen)
+    
+    # dataList=[20,40,53,56]
+    # graphDirectory=plotting.dataBarChart_png(dataList, barColour=darkGreen)
+    # graphPlayCount=Image.open(graphDirectory)
+    # scale=3
+    # graphPlayCount=graphPlayCount.resize((int(scale*graphPlayCount.width),int(scale*graphPlayCount.height)))
+    
+    
+    # potion.paste(graphPlayCount, (945,3655), mask=graphPlayCount)
+    
+    #endregion
         
     fileName='topGames_potion.png'
     potion.save(f'{fileFolder}/{fileName}')
-    print("Saved '{fileName}'")
+    print(f"Saved '{fileName}'")
 
 
 def topComponents(playDict, gameDict, sorter='mechanics'):
@@ -219,8 +264,8 @@ def topPlayers(playerDict, sorter='wins'):
         cryptidSquareDraw.text((x,y), playerNameText,'black', font=font_text)
         
         #plot their plays/wins on a bar chart
-        plotting.singlePlayerBarChart_png(playerList[i], barScale, playColour='#3B173D',winColour='#257CBF')
-        barChart=Image.open('pictureExports/plotting_singlePlayerBarChart.png')
+        imageDirectory=plotting.singlePlayerBarChart_png(playerList[i], barScale, playColour='#3B173D',winColour='#257CBF')
+        barChart=Image.open(imageDirectory)
         scale=1
         barChart=barChart.resize((int(scale*barChart.width),int(scale*barChart.height)))
         cryptidSquare.paste(barChart,(x,yo), mask=barChart)
